@@ -351,9 +351,15 @@ const App: React.FC = () => {
                     <h3>Tags</h3>
                     <div className="tag-chip-row">
                       {result.tags.tags.map((tag, idx) => (
-                        <span key={idx} className="tag-chip">
+                        <a
+                          key={idx}
+                          className="tag-chip"
+                          href={`https://scholar.google.com/scholar?q=${encodeURIComponent(tag)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           {tag}
-                        </span>
+                        </a>
                       ))}
                     </div>
                   </div>
