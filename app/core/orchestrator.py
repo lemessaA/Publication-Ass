@@ -7,6 +7,13 @@ from langgraph.graph import StateGraph, END
 from app.api.models import (
     AnalysisRequest,
     AnalysisResult,
+    ClarityFeedback,
+    StructureFeedback,
+    TechnicalFeedback,
+    VisualFeedback,
+    SummaryFeedback,
+    TagFeedback,
+    GuardrailResult,
 )
 from app.agents.clarity_agent import run_clarity_agent
 from app.agents.structure_agent import run_structure_agent
@@ -19,72 +26,76 @@ from app.services.llm_service import build_llm
 
 
 class OrchestratorState(TypedDict, total=False):
-    """Shared state that flows through the LangGraph execution."""
+    """Shared state that flows through the LangGraph execution.
+
+    Each key is written by at most one node per step to avoid
+    INVALID_CONCURRENT_GRAPH_UPDATE errors.
+    """
 
     request: AnalysisRequest
-    result: AnalysisResult
+    guardrails: GuardrailResult
+    clarity: ClarityFeedback
+    structure: StructureFeedback
+    technical: TechnicalFeedback
+    visuals: VisualFeedback
+    summary: SummaryFeedback
+    tags: TagFeedback
 
 
 def supervisor_node(state: OrchestratorState) -> OrchestratorState:
-    """Supervisor performs guardrail checks and initializes the result container."""
+    """Supervisor performs guardrail checks."""
     request = state["request"]
     guardrail_result = apply_guardrails(request)
-
-    result = AnalysisResult(guardrails=guardrail_result)
-    state["result"] = result
-    return state
+    # Only return the keys we modify; LangGraph will merge them
+    return {"guardrails": guardrail_result}
 
 
 def clarity_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_clarity:
-        return state
+        return {}
     llm = build_llm()
-    state["result"].clarity = run_clarity_agent(llm, state["request"].document)
-    return state
+    clarity = run_clarity_agent(llm, state["request"].document)
+    return {"clarity": clarity}
 
 
 def structure_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_structure:
-        return state
+        return {}
     llm = build_llm()
-    state["result"].structure = run_structure_agent(llm, state["request"].document)
-    return state
+    structure = run_structure_agent(llm, state["request"].document)
+    return {"structure": structure}
 
 
 def technical_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_technical:
-        return state
+        return {}
     llm = build_llm()
-    state["result"].technical = run_technical_reviewer_agent(
-        llm, state["request"].document
-    )
-    return state
+    technical = run_technical_reviewer_agent(llm, state["request"].document)
+    return {"technical": technical}
 
 
 def visuals_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_visuals:
-        return state
+        return {}
     llm = build_llm()
-    state["result"].visuals = run_visual_suggestion_agent(
-        llm, state["request"].document
-    )
-    return state
+    visuals = run_visual_suggestion_agent(llm, state["request"].document)
+    return {"visuals": visuals}
 
 
 def summary_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_summary:
-        return state
+        return {}
     llm = build_llm()
-    state["result"].summary = run_summary_agent(llm, state["request"].document)
-    return state
+    summary = run_summary_agent(llm, state["request"].document)
+    return {"summary": summary}
 
 
 def tags_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_tags:
-        return state
+        return {}
     llm = build_llm()
-    state["result"].tags = run_tag_generator_agent(llm, state["request"].document)
-    return state
+    tags = run_tag_generator_agent(llm, state["request"].document)
+    return {"tags": tags}
 
 
 def build_graph():
@@ -128,12 +139,21 @@ def get_graph():
     return _GRAPH
 
 
-def run_full_analysis(request: AnalysisRequest):
+def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
     """Execute the LangGraph pipeline to produce an AnalysisResult."""
     graph = get_graph()
     initial_state: OrchestratorState = {"request": request}
 
     # In a more advanced setup, you might stream intermediate updates back.
     final_state = graph.invoke(initial_state)
-    return final_state["result"]
+
+    return AnalysisResult(
+        clarity=final_state.get("clarity"),
+        structure=final_state.get("structure"),
+        technical=final_state.get("technical"),
+        visuals=final_state.get("visuals"),
+        summary=final_state.get("summary"),
+        tags=final_state.get("tags"),
+        guardrails=final_state["guardrails"],
+    )
 
