@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime
 from typing import List
@@ -16,6 +17,7 @@ from app.api.models import (
     ExportFormat,
 )
 from app.core.orchestrator import run_full_analysis
+from app.core.safety import sanitize_input_text
 from app.services.history_service import (
     persist_history,
     load_history_items,
@@ -23,6 +25,7 @@ from app.services.history_service import (
 )
 from app.config import get_settings
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -38,6 +41,17 @@ async def analyze_publication(request: AnalysisRequest) -> AnalysisResponse:
         settings = get_settings()
         analysis_id = str(uuid.uuid4())
         created_at = datetime.utcnow()
+
+        # Minimal sanitization (Pydantic still does full validation).
+        request.document.content = sanitize_input_text(request.document.content)
+
+        logger.info(
+            "analysis_started id=%s content_len=%s source=%s content_type=%s",
+            analysis_id,
+            len(request.document.content),
+            request.document.source,
+            request.document.content_type,
+        )
 
         result = run_full_analysis(request)
 
@@ -61,16 +75,21 @@ async def analyze_publication(request: AnalysisRequest) -> AnalysisResponse:
 
         # If guardrails rejected content, surface as 400 even though we return the structure.
         if result.guardrails.status != "ok":
+            logger.warning(
+                "analysis_rejected id=%s reason=%s", analysis_id, result.guardrails.reason
+            )
             raise HTTPException(
                 status_code=400,
                 detail=result.guardrails.reason or "Input rejected by guardrails.",
             )
 
+        logger.info("analysis_completed id=%s", analysis_id)
         return response
     except HTTPException:
         # Re-raise FastAPI HTTP errors directly.
         raise
     except Exception as exc:
+        logger.exception("analysis_failed id=%s", analysis_id)
         # Generic error handler.
         raise HTTPException(
             status_code=500,
@@ -89,8 +108,12 @@ async def analyze_file(
 ) -> AnalysisResponse:
     """Helper endpoint for file-based uploads."""
     try:
+        # Avoid unbounded uploads.
         raw_bytes = await file.read()
-        content = raw_bytes.decode("utf-8", errors="ignore")
+        if len(raw_bytes) > 5_000_000:
+            raise HTTPException(status_code=400, detail="Uploaded file is too large.")
+
+        content = sanitize_input_text(raw_bytes.decode("utf-8", errors="ignore"))
         document = DocumentInput(
             content=content,
             content_type=content_type,
@@ -101,7 +124,11 @@ async def analyze_file(
         return await analyze_publication(request)
     except HTTPException:
         raise
+    except ValueError as exc:
+        # Pydantic validators can raise ValueError; return as 400 instead of 500.
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
+        logger.exception("analysis_file_failed filename=%s", file.filename)
         raise HTTPException(
             status_code=500,
             detail=f"Failed to analyze uploaded file: {exc}",
