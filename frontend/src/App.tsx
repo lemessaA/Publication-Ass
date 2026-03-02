@@ -272,24 +272,32 @@ const App: React.FC = () => {
             {result?.visuals ? (
               <>
                 {result.visuals.suggestions.length > 0 && (
-                  <div className="visual-list">
+                  <div className="visual-grid">
                     {result.visuals.suggestions.map((v, idx) => (
-                      <div key={idx} className="visual-item">
-                        <strong>{v.title}</strong> <span className="visual-type">({v.type})</span>
-                        <p>{v.description}</p>
-                      </div>
+                      <article key={idx} className="visual-card">
+                        <header className="visual-card-header">
+                          <div className="visual-icon">
+                            <span>📊</span>
+                          </div>
+                          <div className="visual-title-block">
+                            <h3 className="visual-title">{v.title}</h3>
+                            <span className="visual-type-pill">{v.type}</span>
+                          </div>
+                        </header>
+                        <p className="visual-description">{v.description}</p>
+                      </article>
                     ))}
                   </div>
                 )}
                 {result.visuals.formatting_tips.length > 0 && (
-                  <>
+                  <div className="visual-formatting">
                     <h3>Formatting tips</h3>
                     <ul>
                       {result.visuals.formatting_tips.map((t, idx) => (
                         <li key={idx}>{t}</li>
                       ))}
                     </ul>
-                  </>
+                  </div>
                 )}
               </>
             ) : (
@@ -326,22 +334,29 @@ const App: React.FC = () => {
             {result?.tags ? (
               <>
                 {result.tags.title_suggestions.length > 0 && (
-                  <>
+                  <div className="titles-section">
                     <h3>Title suggestions</h3>
-                    <ul>
+                    <ol className="title-list">
                       {result.tags.title_suggestions.map((t, idx) => (
-                        <li key={idx}>{t}</li>
+                        <li key={idx} className="title-item">
+                          <span className="title-rank">{idx + 1}</span>
+                          <span className="title-text">{t}</span>
+                        </li>
                       ))}
-                    </ul>
-                  </>
+                    </ol>
+                  </div>
                 )}
                 {result.tags.tags.length > 0 && (
-                  <>
+                  <div className="tags-section">
                     <h3>Tags</h3>
-                    <p className="tag-list">
-                      {result.tags.tags.join(", ")}
-                    </p>
-                  </>
+                    <div className="tag-chip-row">
+                      {result.tags.tags.map((tag, idx) => (
+                        <span key={idx} className="tag-chip">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </>
             ) : (
