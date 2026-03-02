@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import logging
 from typing import TypedDict
 
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, END 
 
 from app.api.models import (
     AnalysisRequest,
@@ -22,7 +23,11 @@ from app.agents.visual_suggestion import run_visual_suggestion_agent
 from app.agents.summary_agent import run_summary_agent
 from app.agents.tag_generator import run_tag_generator_agent
 from app.core.guardrails import apply_guardrails
+from app.core.retry import call_with_retries
+from app.core.safety import filter_analysis_result
 from app.services.llm_service import build_llm
+
+logger = logging.getLogger(__name__)
 
 
 class OrchestratorState(TypedDict, total=False):
@@ -53,48 +58,84 @@ def supervisor_node(state: OrchestratorState) -> OrchestratorState:
 def clarity_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_clarity:
         return {}
-    llm = build_llm()
-    clarity = run_clarity_agent(llm, state["request"].document)
+    def _call():
+        llm = build_llm()
+        return run_clarity_agent(llm, state["request"].document)
+
+    clarity = call_with_retries(_call, description="clarity_agent")
+    if clarity is None:
+        logger.error("Clarity agent failed after retries")
+        return {}
     return {"clarity": clarity}
 
 
 def structure_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_structure:
         return {}
-    llm = build_llm()
-    structure = run_structure_agent(llm, state["request"].document)
+    def _call():
+        llm = build_llm()
+        return run_structure_agent(llm, state["request"].document)
+
+    structure = call_with_retries(_call, description="structure_agent")
+    if structure is None:
+        logger.error("Structure agent failed after retries")
+        return {}
     return {"structure": structure}
 
 
 def technical_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_technical:
         return {}
-    llm = build_llm()
-    technical = run_technical_reviewer_agent(llm, state["request"].document)
+    def _call():
+        llm = build_llm()
+        return run_technical_reviewer_agent(llm, state["request"].document)
+
+    technical = call_with_retries(_call, description="technical_reviewer_agent")
+    if technical is None:
+        logger.error("Technical reviewer agent failed after retries")
+        return {}
     return {"technical": technical}
 
 
 def visuals_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_visuals:
         return {}
-    llm = build_llm()
-    visuals = run_visual_suggestion_agent(llm, state["request"].document)
+    def _call():
+        llm = build_llm()
+        return run_visual_suggestion_agent(llm, state["request"].document)
+
+    visuals = call_with_retries(_call, description="visual_suggestion_agent")
+    if visuals is None:
+        logger.error("Visual suggestion agent failed after retries")
+        return {}
     return {"visuals": visuals}
 
 
 def summary_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_summary:
         return {}
-    llm = build_llm()
-    summary = run_summary_agent(llm, state["request"].document)
+    def _call():
+        llm = build_llm()
+        return run_summary_agent(llm, state["request"].document)
+
+    summary = call_with_retries(_call, description="summary_agent")
+    if summary is None:
+        logger.error("Summary agent failed after retries")
+        return {}
     return {"summary": summary}
 
 
 def tags_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_tags:
         return {}
-    llm = build_llm()
-    tags = run_tag_generator_agent(llm, state["request"].document)
+    def _call():
+        llm = build_llm()
+        return run_tag_generator_agent(llm, state["request"].document)
+
+    tags = call_with_retries(_call, description="tag_generator_agent")
+    if tags is None:
+        logger.error("Tag generator agent failed after retries")
+        return {}
     return {"tags": tags}
 
 
@@ -147,7 +188,7 @@ def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
     # In a more advanced setup, you might stream intermediate updates back.
     final_state = graph.invoke(initial_state)
 
-    return AnalysisResult(
+    result = AnalysisResult(
         clarity=final_state.get("clarity"),
         structure=final_state.get("structure"),
         technical=final_state.get("technical"),
@@ -156,4 +197,5 @@ def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
         tags=final_state.get("tags"),
         guardrails=final_state["guardrails"],
     )
+    return filter_analysis_result(result)
 
