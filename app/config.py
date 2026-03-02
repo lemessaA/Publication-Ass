@@ -18,11 +18,12 @@ class Settings(BaseModel):
     # LLM / LangChain configuration (Groq)
     groq_api_key: str = Field(default_factory=lambda: os.getenv("GROQ_API_KEY", ""))
     groq_model: str = Field(
-        default=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+        default=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
         description="Groq model name to use for all LLM calls.",
     )
+    # app/config.py
 
-    # Backend
+    # Backendopenai/gpt-oss-20b
     environment: str = Field(default=os.getenv("ENVIRONMENT", "development"))
     debug: bool = Field(default=os.getenv("DEBUG", "false").lower() == "true")
 
