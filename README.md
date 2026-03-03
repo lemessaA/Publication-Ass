@@ -1,136 +1,121 @@
-# Publication Assistant (Groq + FastAPI + Streamlit)
+# Publication Assistant for AI Projects
 
-A lightweight multi-agent assistant that analyzes AI/ML publication drafts for:
-- clarity improvements
-- structure/outline suggestions
-- technical review feedback
-- visual/figure/table suggestions
-- abstract + key contributions
-- titles + keyword tags
+A multi-agent assistant that analyzes AI/ML publication drafts and provides actionable feedback across clarity, structure, technical soundness, visuals, abstracts, and tags.
 
-It includes:
-- a **FastAPI** backend (`/api/v1/...`) that runs the analysis pipeline
-- a **Streamlit** UI that calls the backend
-- an LLM integration configured for **Groq**
+**Tech stack**
+- Backend: FastAPI + LangGraph orchestration
+- LLM: Groq (via LangChain)
+- Frontend: React + Vite (TypeScript)
+- Tests: pytest
 
 ---
 
-## Project structure
+## Features
 
-```text
-publication-Ass/
-  app/
-    agents/              # clarity/structure/technical/visual/summary/tag agents
-    api/                 # request/response models + endpoints
-    core/                # orchestrator (LangGraph) + guardrails
-    services/            # LLM provider wrapper + history storage
-    main.py              # FastAPI app entrypoint
-    config.py            # env-based settings
-  streamlit_app/
-    main.py              # Streamlit UI
-  tests/
-    test_api.py
-    test_agents.py
-  requirements.txt
-```
+- **Clarity**: Improved phrasing and readability comments
+- **Structure**: Outline and section suggestions
+- **Technical review**: Issues found and suggestions for methodology/experiments
+- **Visuals**: Diagram/figure/table recommendations
+- **Summary**: Draft abstract and key contributions
+- **Tags**: Title candidates and keyword tags
+- **Guardrails**: Basic content checks before analysis
 
 ---
 
-## Requirements
+## Quickstart
 
-- Python **3.10+** (recommended)
-- A **Groq API key**
+### Prerequisites
+- Python 3.10+
+- Node.js (npm/pnpm)
 
-Install Python dependencies:
-
+### Backend
 ```bash
+# Virtualenv
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Dependencies
 pip install -r requirements.txt
-```
 
----
-
-## Configuration (Groq)
-
-Set your Groq API key:
-
-```bash
-export GROQ_API_KEY="your_groq_api_key"
-```
-
-Optional: pick a Groq model (default is `llama-3.1-70b-versatile`):
-
-```bash
-export GROQ_MODEL="llama-3.1-70b-versatile"
-```
-
-Other optional env vars:
-- `FRONTEND_ORIGIN`: enables CORS for the Streamlit app (e.g. `http://localhost:8501`)
-- `HISTORY_BACKEND`: `memory` (default) or `file`
-- `HISTORY_DIR`: folder where history JSON is stored (when `HISTORY_BACKEND=file`)
-
----
-
-## Run the backend (FastAPI)
-
-From the project root:
-
-```bash
+# Run (dev)
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Healthcheck:
-
+### Frontend
 ```bash
-curl http://localhost:8000/healthz
+cd frontend
+npm install
+npm run dev
 ```
 
-API base prefix is `"/api/v1"` (see `app/config.py`).
+The frontend defaults to calling `http://localhost:8000/api/v1`. Override with `VITE_API_BASE_URL` in `frontend/.env` if needed.
 
 ---
 
-## Run the frontend (Streamlit)
+## Environment variables
 
-In a separate terminal:
+Create a `.env` file in the project root or set in your shell:
 
-```bash
-export BACKEND_URL="http://localhost:8000"
-streamlit run streamlit_app/main.py
+```env
+# Required
+GROQ_API_KEY=your_groq_api_key_here
+
+# Optional
+GROQ_MODEL=openai/gpt-oss-120b
+FRONTEND_ORIGIN=http://localhost:5173          # Enables CORS for the frontend
+HISTORY_BACKEND=memory                         # or "file"
+HISTORY_DIR=./history
+ENVIRONMENT=development
+DEBUG=false
 ```
 
-Then open Streamlit in your browser (Streamlit will print the local URL).
+---
+
+## API reference
+
+Base URL: `http://localhost:8000/api/v1`
+
+- `POST /analyze` – Analyze raw text (JSON)
+- `POST /analyze/file` – Analyze uploaded file (multipart)
+- `GET /healthz` – Health check
+
+See `app/api/endpoints.py` and `app/api/models.py` for schemas.
 
 ---
 
-## API endpoints (backend)
+## Development
 
-- `POST /api/v1/analyze` — analyze pasted text (JSON body)
-- `POST /api/v1/analyze/file` — analyze uploaded file (`multipart/form-data`)
-- `GET /api/v1/history` — list history items (only when `HISTORY_BACKEND=file`)
-- `GET /api/v1/history/{item_id}` — fetch one history item (file backend only)
-- `GET /api/v1/history/{item_id}/export?fmt=json` — export one history item
-
----
-
-## Running tests
-
+### Tests
 ```bash
 pytest -q
 ```
+
+### Adding agents
+- Implement new agents under `app/agents/`
+- Register in the orchestrator (`app/core/orchestrator.py`)
+
+### Switching LLM provider
+- Update `app/services/llm_service.py` and `app/config.py`
 
 ---
 
 ## Troubleshooting
 
-### LLM calls fail / empty output
-- Ensure `GROQ_API_KEY` is set in the same shell where you run `uvicorn`.
-- If you use an `.env` file, export the variables or use a tool like `direnv`.
-
-### Streamlit shows “Backend error”
-- Confirm the backend is running and reachable at `BACKEND_URL`.
-- Check the backend logs for the underlying exception.
+- **CORS errors**: Set `FRONTEND_ORIGIN` to your Vite dev URL (e.g., `http://localhost:5173`) and restart the backend.
+- **Failed to fetch**: Ensure the backend is running on the expected host/port and that `VITE_API_BASE_URL` matches.
+- **LLM failures**: Verify `GROQ_API_KEY` is set and outbound network is allowed.
 
 ---
 
-## Notes
+## Contributing
 
-This project is intentionally minimal and designed to be easy to extend (e.g., richer guardrails, better JSON parsing, streaming results, additional agents, persistent storage).
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new behavior
+4. Open a pull request
+
+---
+
+## License
+
+MIT
