@@ -1,3 +1,11 @@
+"""
+API integration tests exercising the FastAPI endpoints.
+
+These tests use `TestClient` to verify healthchecks, validation behavior,
+file uploads, and that the analysis endpoint integrates with the
+orchestrator (the LLM is monkeypatched in tests to avoid network calls).
+"""
+
 from fastapi.testclient import TestClient
 
 from app.main import app
