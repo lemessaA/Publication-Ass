@@ -4,6 +4,7 @@ from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.endpoints import router as api_router
 from app.config import get_settings
@@ -31,6 +32,14 @@ if settings.allowed_origin:
 
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)
+
+# Serve built frontend static files
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+
+@app.get("/")
+async def read_index():
+    from fastapi.responses import FileResponse
+    return FileResponse("static/index.html")
 
 
 @app.get("/healthz")
