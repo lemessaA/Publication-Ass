@@ -18,7 +18,7 @@ class Settings(BaseModel):
     # LLM / LangChain configuration (Groq)
     groq_api_key: str = Field(default_factory=lambda: os.getenv("GROQ_API_KEY", ""))
     groq_model: str = Field(
-        default=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
+        default=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
         description="Groq model name to use for all LLM calls.",
     )
     # app/config.py
