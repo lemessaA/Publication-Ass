@@ -3,6 +3,8 @@ import type { AnalysisResponse, AnalysisResult } from "./types";
 import { GuideModal } from "./components/GuideModal";
 import { Tooltip } from "./components/Tooltip";
 import { ProgressBar } from "./components/ProgressBar";
+import { InteractiveButton } from "./components/InteractiveButton";
+import { AnimatedProgress } from "./components/AnimatedProgress";
 
 type Tab = "text" | "file";
 
@@ -240,23 +242,21 @@ const App: React.FC = () => {
                   onChange={(e) => setTextContent(e.target.value)}
                   placeholder="Paste your draft here (markdown, LaTeX, or plain text)..."
                 />
-                <button
-                  className="btn btn-xs btn-secondary"
-                  type="button"
-                  onClick={() => setTextContent(EXAMPLE_TEXT)}
-                >
-                  Load example
+                <button className="btn btn-xs btn-secondary animate-fade-in" onClick={() => setTextContent(EXAMPLE_TEXT)}>
+                  ✨ Load example
                 </button>
               </div>
               <div className="actions">
-                <button
-                  className="btn primary"
-                  type="button"
+                <InteractiveButton
                   onClick={handleAnalyzeText}
                   disabled={isLoading || !textContent.trim()}
+                  loading={isLoading}
+                  tooltip={textContent.trim() ? "Analyze your document (Ctrl+Enter)" : "Please enter some text first"}
+                  icon="🔍"
+                  variant="primary"
                 >
                   {isLoading ? "Analyzing..." : "Analyze text"}
-                </button>
+                </InteractiveButton>
               </div>
             </div>
           )}
@@ -290,14 +290,16 @@ const App: React.FC = () => {
                 </p>
               )}
               <div className="actions">
-                <button
-                  className="btn primary"
-                  type="button"
+                <InteractiveButton
                   onClick={handleAnalyzeFile}
                   disabled={isLoading || !file}
+                  loading={isLoading}
+                  tooltip={file ? "Analyze uploaded file" : "Please select a file first"}
+                  icon="📁"
+                  variant="primary"
                 >
                   {isLoading ? "Analyzing..." : "Analyze file"}
-                </button>
+                </InteractiveButton>
               </div>
             </div>
           )}
@@ -314,13 +316,15 @@ const App: React.FC = () => {
           {isLoading && (
             <div className="progress-sections">
               <h4>Analysis progress</h4>
-              {["clarity", "structure", "technical", "visuals", "summary", "tags"].map((key) => (
-                <div key={key} className="progress-item">
-                  <ProgressBar
-                    percent={analysisProgress[key] ?? 0}
+              {(["clarity", "structure", "technical", "visuals", "summary", "tags"] as const).map((key, index) => (
+                <div key={key} className="progress-item" style={{ animationDelay: `${index * 100}ms` }}>
+                  <AnimatedProgress
+                    value={analysisProgress[key] ?? 0}
                     label={key.charAt(0).toUpperCase() + key.slice(1)}
+                    color="blue"
                     size="sm"
-                    color="primary"
+                    showPercentage
+                    animated
                   />
                 </div>
               ))}

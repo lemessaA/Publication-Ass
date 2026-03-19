@@ -35,7 +35,7 @@ class Settings(BaseModel):
     history_dir: str = Field(default=os.getenv("HISTORY_DIR", "./history"))
 
     # Basic content guardrails
-    max_input_chars: int = 20000
+    max_input_chars: int = 200000
 
 
 @lru_cache
