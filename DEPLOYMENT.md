@@ -120,6 +120,7 @@ Default **`HISTORY_BACKEND=memory`** loses data on restarts. For persistent file
 
 - **CORS errors in the browser** — `FRONTEND_ORIGIN` must match the **exact** page origin (scheme + host, no path). Include preview URLs separately if you test previews against prod API.
 - **Analyze fails / wrong host** — Confirm `VITE_API_BASE_URL` ends with **`/api/v1`** and was set **before** the Vercel build (redeploy after changing env).
+- **History panel shows “Could not load…”** — Often the UI still calls **`localhost`** because **`VITE_API_BASE_URL` was not set for Production on Vercel** (Vite bakes env at build time). Set `VITE_API_BASE_URL=https://<render-host>/api/v1`, redeploy Vercel, hard-refresh the site. Then confirm Render **`FRONTEND_ORIGIN`** lists your Vercel origins **without** trailing `/` and **restart** the Render service after edits.
 - **413 / payload too large from Groq** — Reduce pasted length or lower **`MAX_LLM_INPUT_CHARS`** on Render; use **section scope** in the UI for long papers.
 - **Cold starts (free tier)** — First request after idle can take tens of seconds; subsequent requests are faster.
 
