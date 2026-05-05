@@ -1,6 +1,17 @@
 # Deployment: Render (API) + Vercel (frontend)
 
-This guide wires the **FastAPI backend on [Render](https://render.com)** and the **Vite React app on [Vercel](https://vercel.com)**. The browser talks to the Render URL; CORS must allow your Vercel domain(s).
+This guide wires the **FastAPI backend on [Render](https://render.com)** and the **Vite React app on [Vercel](https://vercel.com)**. The browser calls the Render API over HTTPS; CORS must allow your Vercel origin(s). JSON and **SSE streaming** (`/analyze/stream`, `/analyze/file/stream`) use the same CORS rules.
+
+### At a glance
+
+| Piece | Where | Must set |
+|--------|--------|-----------|
+| API | Render Web Service | `GROQ_API_KEY`, `FRONTEND_ORIGIN` |
+| UI | Vercel (`frontend/` root) | `VITE_API_BASE_URL` = `https://<render-host>/api/v1` |
+
+**Order:** deploy Render → copy API URL → set Vercel env → deploy Vercel → set `FRONTEND_ORIGIN` on Render to your Vercel URL → redeploy Render if needed.
+
+**Alternative:** run everything from one URL using the repo **`Dockerfile`** (FastAPI serves the built SPA under `/`). See §5.
 
 ---
 
@@ -26,7 +37,22 @@ Health check: **`GET /healthz`** (configured in `render.yaml`).
    **Build command:** `pip install .`  
    **Start command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 3. Add the same environment variables as in the blueprint (at minimum `GROQ_API_KEY`, `FRONTEND_ORIGIN`, `ENVIRONMENT=production`).
-4. Optional: set **Python version** to **3.12** (matches `.python-version`).
+4. Optional: set **Python version** to **3.12** (matches `render.yaml` / `Dockerfile`).
+
+### Production env reference (Render)
+
+| Variable | Required | Notes |
+|----------|-----------|--------|
+| `GROQ_API_KEY` | Yes | Groq API key. |
+| `FRONTEND_ORIGIN` | Yes for browser UI | Comma-separated origins, e.g. `https://your-app.vercel.app`. No trailing slash. |
+| `ENVIRONMENT` | Recommended | `production` |
+| `GROQ_MODEL` | Optional | Default in `app/config.py` / `render.yaml`. |
+| `MAX_LLM_INPUT_CHARS` | Optional | Lower if Groq returns 413 / token limit errors. |
+| `MAX_INPUT_CHARS` | Optional | Max pasted/upload size for guardrails (characters). |
+| `REVIEWER_PERSONA` | Optional | Prepended to every agent; restart service after change. |
+| `HISTORY_BACKEND` | Optional | `memory` (default on Render) or `file` + disk mount — see §6. |
+
+Secrets (`GROQ_API_KEY`) should be set in the Render dashboard or secret store, not committed.
 
 ### Backend URL
 
@@ -55,7 +81,7 @@ If `FRONTEND_ORIGIN` is empty, **no CORS middleware** is registered (fine for se
 
 1. Import the **same Git repository** into Vercel.
 2. **Root Directory:** `frontend` (important: `package.json` is under `frontend/`).
-3. Framework: **Vite** (auto-detected if `frontend/vercel.json` is present).
+3. Framework: **Vite** (auto-detected from `frontend/package.json`).
 4. **Environment variables** (Production — and Preview if you test against a staging API):
 
    | Name | Example value |
@@ -80,7 +106,7 @@ If `FRONTEND_ORIGIN` is empty, **no CORS middleware** is registered (fine for se
 
 ## 5. Optional: single Docker image (Render or elsewhere)
 
-The repo root **`Dockerfile`** builds the frontend and serves it from FastAPI under `/` when `static/` is populated. That pattern hosts UI + API on **one** URL; it is **not** what this guide uses for **Vercel + Render split**. To use Docker on Render instead, create a **Docker** web service pointing at that Dockerfile and set **`PORT`** / **`GROQ_API_KEY`** / **`FRONTEND_ORIGIN`** as needed.
+The repo root **`Dockerfile`** builds the frontend and copies `dist` into **`static/`** so FastAPI serves the SPA at **`/`**. That pattern hosts UI + API on **one** URL; it is **not** what this guide uses for **Vercel + Render split**. To use Docker on Render instead, create a **Docker** web service pointing at that Dockerfile and set **`PORT`**, **`GROQ_API_KEY`**, and optionally **`FRONTEND_ORIGIN`** (omit or leave empty when the browser only talks to the same origin).
 
 ---
 
@@ -90,7 +116,16 @@ Default **`HISTORY_BACKEND=memory`** loses data on restarts. For persistent file
 
 ---
 
-## 7. Checklist
+## 7. Troubleshooting
+
+- **CORS errors in the browser** — `FRONTEND_ORIGIN` must match the **exact** page origin (scheme + host, no path). Include preview URLs separately if you test previews against prod API.
+- **Analyze fails / wrong host** — Confirm `VITE_API_BASE_URL` ends with **`/api/v1`** and was set **before** the Vercel build (redeploy after changing env).
+- **413 / payload too large from Groq** — Reduce pasted length or lower **`MAX_LLM_INPUT_CHARS`** on Render; use **section scope** in the UI for long papers.
+- **Cold starts (free tier)** — First request after idle can take tens of seconds; subsequent requests are faster.
+
+---
+
+## 8. Checklist
 
 - [ ] `GROQ_API_KEY` set on Render  
 - [ ] `FRONTEND_ORIGIN` matches Vercel origin(s) exactly  
