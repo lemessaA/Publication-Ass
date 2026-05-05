@@ -36,7 +36,7 @@ class Settings(BaseModel):
     max_input_chars: int = Field(default=int(os.getenv("MAX_INPUT_CHARS", "200000")))
     # Groq rejects oversized prompts (HTTP 413 / token limits). Window document for LLM calls.
     max_llm_input_chars: int = Field(
-        default=int(os.getenv("MAX_LLM_INPUT_CHARS", "28000")),
+        default=int(os.getenv("MAX_LLM_INPUT_CHARS", "24000")),
         description="Max characters sent to the LLM (head+tail window). Increase only if your Groq tier/model allows.",
     )
 

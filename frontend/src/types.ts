@@ -60,6 +60,7 @@ export interface AnalysisResult {
   summary?: SummaryFeedback | null;
   tags?: TagFeedback | null;
   guardrails: GuardrailResult;
+  analysis_warnings?: string[];
 }
 
 export interface AnalysisRequest {
