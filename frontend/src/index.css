@@ -127,6 +127,9 @@ body {
   background: var(--error-bg);
   color: #fecaca;
   border: 1px solid rgba(248, 113, 113, 0.45);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .page-main {
@@ -545,10 +548,13 @@ input[type="file"]::file-selector-button:hover {
   padding: 1rem;
   border-radius: 0.375rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
   animation: slideDown 0.3s ease-out;
+  max-width: 100%;
+  min-width: 0;
 }
 
 @keyframes slideDown {
@@ -600,6 +606,8 @@ input[type="file"]::file-selector-button:hover {
   border: 1px solid var(--border);
   background: rgba(9, 9, 11, 0.55);
   backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .analysis-loading-text strong {
@@ -784,11 +792,13 @@ input[type="file"]::file-selector-button:hover {
   animation: shimmer 2s infinite;
 }
 
-/* Results grid */
+/* Results grid — min(100%, …) prevents horizontal overflow on narrow viewports */
 .results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .result-card {
@@ -867,6 +877,9 @@ input[type="file"]::file-selector-button:hover {
   font-size: 0.8125rem;
   white-space: pre-wrap;
   overflow-x: auto;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
   transition: border-color var(--transition), box-shadow var(--transition);
   position: relative;
   color: #e4e4e7;
@@ -901,9 +914,10 @@ li {
 /* Visual cards */
 .visual-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: 1rem;
   margin: 1rem 0;
+  min-width: 0;
 }
 
 .visual-card {
@@ -1027,6 +1041,9 @@ li {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Modal */
@@ -1037,10 +1054,15 @@ li {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: max(1rem, env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    max(1rem, env(safe-area-inset-bottom, 0px))
+    max(1rem, env(safe-area-inset-left, 0px));
   background: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .modal-content {
@@ -1049,12 +1071,14 @@ li {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  max-width: 32rem;
+  max-width: min(32rem, 100%);
   width: 100%;
-  max-height: 80vh;
+  max-height: min(80vh, 100dvh - 2rem);
   overflow-y: auto;
   box-shadow: var(--shadow-lg), var(--shadow-glow);
   animation: modalFadeIn 0.22s ease-out;
+  margin: auto;
+  min-width: 0;
 }
 
 @keyframes modalFadeIn {
@@ -1295,7 +1319,8 @@ li {
 /* Responsive */
 @media (max-width: 768px) {
   .page {
-    padding: 1rem;
+    padding: 1rem clamp(0.75rem, 3vw, 1rem);
+    padding-top: max(1rem, env(safe-area-inset-top, 0px));
   }
 
   .page-header {
@@ -1305,24 +1330,94 @@ li {
 
   .header-actions {
     align-self: stretch;
-    justify-content: flex-end;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .guardrail-indicator {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 
   .results-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .actions {
     flex-direction: column;
+    align-items: stretch;
   }
 
-  .btn {
+  .actions .ibtn-wrap {
+    width: 100%;
+    display: block;
+  }
+
+  .actions .ibtn-wrap .btn {
     width: 100%;
     justify-content: center;
+    min-height: 44px;
   }
 
-  .modal-content {
-    margin: 1rem;
+  /* Primary flows only — avoid breaking absolute Copy / floating controls */
+  .actions > .btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* Avoid wrapping tooltip host forcing odd widths */
+  .header-actions .ibtn-wrap {
+    width: auto;
+    display: inline-block;
+  }
+
+  .header-actions .ibtn-wrap .btn {
+    width: auto;
+    min-height: 40px;
+  }
+
+  .monospace-block .btn,
+  .textarea-wrapper > .btn {
+    width: auto;
+    min-height: 36px;
+  }
+
+  .alert .btn {
+    width: auto;
+    min-height: 40px;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .tabs {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .tab {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.55rem 0.65rem;
+    text-align: center;
+  }
+
+  .card {
+    padding: 1.1rem;
+  }
+
+  .textarea-wrapper .btn-xs {
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.55rem;
   }
 
   .modal-header,
@@ -1330,5 +1425,81 @@ li {
   .modal-footer {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+
+  .modal-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .modal-header h2 {
+    font-size: clamp(1rem, 4.5vw, 1.2rem);
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ibtn-tooltip {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .subtitle {
+    font-size: 0.875rem;
+    max-width: none;
+  }
+
+  .textarea-wrapper .btn-xs {
+    position: static;
+    display: inline-flex;
+    align-self: flex-end;
+    margin-top: 0.5rem;
+  }
+
+  .textarea-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .file-selected {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .history-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .history-loading {
+    margin-left: 0;
+  }
+
+  .monospace-block.with-actions {
+    padding-top: 2.75rem;
+  }
+
+  .monospace-block.with-actions .btn-xs {
+    top: 0.45rem;
+    right: 0.45rem;
+  }
+
+  .tag-chip-row {
+    gap: 0.4rem;
+  }
+
+  .tag-chip {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .page-footer span {
+    display: inline-block;
+    max-width: 100%;
+    padding: 0 0.25rem;
+    line-height: 1.5;
   }
 }
