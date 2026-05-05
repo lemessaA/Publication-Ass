@@ -18,23 +18,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Python package (dependencies from pyproject.toml)
+COPY pyproject.toml README.md ./
+COPY app/ ./app/
+RUN pip install --no-cache-dir .
 
 # Copy built frontend static assets to be served by FastAPI
 COPY --from=frontend-builder /app/frontend/dist ./static
-
-# Copy app code
-COPY app/ ./app/
 
 # Non-root user
 RUN useradd --create-home --shell /bin/bash app
 RUN chown -R app:app /app
 USER app
 
-# Health check
-RUN pip install --no-cache-dir httpx
+# Health check (httpx already installed via pyproject.toml)
 COPY <<'EOF' /app/healthcheck.py
 import httpx, sys, os
 port = int(os.getenv("PORT", 8000))

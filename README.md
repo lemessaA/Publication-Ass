@@ -34,8 +34,8 @@ A multi-agent assistant that analyzes AI/ML publication drafts and provides acti
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Dependencies
-pip install -r requirements.txt
+# Dependencies (PEP 621, see `pyproject.toml` in the repo root)
+pip install -e .
 
 # Run (dev, from repository root)
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
