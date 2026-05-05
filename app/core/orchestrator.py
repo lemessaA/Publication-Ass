@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TypedDict
+from typing import Any, Iterator, TypedDict
 
 from langgraph.graph import StateGraph, END 
 
@@ -195,8 +195,8 @@ def get_graph():
     return _GRAPH
 
 
-def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
-    """Execute the LangGraph pipeline to produce an AnalysisResult."""
+def prepare_orchestrator_state(request: AnalysisRequest) -> tuple[OrchestratorState, list[str]]:
+    """Window document text for LLM limits and build initial LangGraph state."""
     settings = get_settings()
     req_llm = request.model_copy(deep=True)
     new_content, truncated = window_document_for_llm(
@@ -219,13 +219,17 @@ def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
             settings.max_llm_input_chars,
         )
 
-    graph = get_graph()
     initial_state: OrchestratorState = {
         "request": req_llm,
         "reviewer_context": settings.reviewer_persona,
     }
+    return initial_state, warnings
 
-    # In a more advanced setup, you might stream intermediate updates back.
+
+def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
+    """Execute the LangGraph pipeline to produce an AnalysisResult."""
+    initial_state, warnings = prepare_orchestrator_state(request)
+    graph = get_graph()
     final_state = graph.invoke(initial_state)
 
     result = AnalysisResult(
@@ -239,4 +243,36 @@ def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
         analysis_warnings=warnings,
     )
     return filter_analysis_result(result)
+
+
+def iter_analysis_stream_events(request: AnalysisRequest) -> Iterator[dict[str, Any]]:
+    """Yield per-node completion events, then a final ``done`` event with the result.
+
+    Uses LangGraph ``stream_mode=\"updates\"`` so parallel agents report completions
+    in completion order (not a fixed pipeline order).
+    """
+    initial_state, warnings = prepare_orchestrator_state(request)
+    graph = get_graph()
+    acc: dict[str, Any] = dict(initial_state)
+
+    for chunk in graph.stream(initial_state, stream_mode="updates"):
+        for node_name, update in chunk.items():
+            yield {"type": "step", "step": node_name}
+            if update is not None:
+                acc.update(update)
+
+    if "guardrails" not in acc:
+        raise RuntimeError("Supervisor did not set guardrails state.")
+
+    result = AnalysisResult(
+        clarity=acc.get("clarity"),
+        structure=acc.get("structure"),
+        technical=acc.get("technical"),
+        visuals=acc.get("visuals"),
+        summary=acc.get("summary"),
+        tags=acc.get("tags"),
+        guardrails=acc["guardrails"],
+        analysis_warnings=warnings,
+    )
+    yield {"type": "done", "result": filter_analysis_result(result)}
 
