@@ -32,8 +32,13 @@ class Settings(BaseModel):
     history_backend: str = Field(default=os.getenv("HISTORY_BACKEND", "memory"))
     history_dir: str = Field(default=os.getenv("HISTORY_DIR", "./history"))
 
-    # Basic content guardrails
-    max_input_chars: int = 2000000
+    # Basic content guardrails (upload / paste maximum)
+    max_input_chars: int = Field(default=int(os.getenv("MAX_INPUT_CHARS", "200000")))
+    # Groq rejects oversized prompts (HTTP 413 / token limits). Window document for LLM calls.
+    max_llm_input_chars: int = Field(
+        default=int(os.getenv("MAX_LLM_INPUT_CHARS", "28000")),
+        description="Max characters sent to the LLM (head+tail window). Increase only if your Groq tier/model allows.",
+    )
 
 
 @lru_cache
