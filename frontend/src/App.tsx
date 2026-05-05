@@ -116,13 +116,23 @@ const App: React.FC = () => {
     try {
       const resp = await fetch(`${API_BASE_URL}/history`);
       if (!resp.ok) {
+        const hint =
+          resp.status === 404
+            ? "API returned 404 — check VITE_API_BASE_URL ends with /api/v1 and matches your deployed Render host."
+            : `HTTP ${resp.status}. If this is production, set VITE_API_BASE_URL on Vercel and redeploy; set FRONTEND_ORIGIN on Render (no trailing slash) and restart the service.`;
+        setHistoryError(`Could not load history. ${hint}`);
         setHistoryItems([]);
         return;
       }
       const data: HistoryItem[] = await resp.json();
       setHistoryItems(data);
-    } catch {
-      setHistoryError("Could not load history (is the API running and CORS configured?)");
+    } catch (e: unknown) {
+      const detail = e instanceof Error ? e.message : String(e);
+      setHistoryError(
+        `Could not reach ${API_BASE_URL}/history (${detail}). ` +
+          "Production: set Vercel env VITE_API_BASE_URL=https://<your-render-host>/api/v1 and redeploy. " +
+          "On Render set FRONTEND_ORIGIN to this site’s origin (comma-separated, no trailing slash) and restart.",
+      );
       setHistoryItems([]);
     }
   }, []);
