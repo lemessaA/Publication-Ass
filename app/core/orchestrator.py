@@ -248,7 +248,7 @@ def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
 def iter_analysis_stream_events(request: AnalysisRequest) -> Iterator[dict[str, Any]]:
     """Yield per-node completion events, then a final ``done`` event with the result.
 
-    Uses LangGraph ``stream_mode=\"updates\"`` so parallel agents report completions
+    Uses LangGraph ``stream_mode="updates"`` so parallel agents report completions
     in completion order (not a fixed pipeline order).
     """
     initial_state, warnings = prepare_orchestrator_state(request)

@@ -47,15 +47,26 @@ def test_analyze_happy_path(monkeypatch, fake_llm) -> None:
     assert data["result"]["guardrails"]["status"] == "ok"
 
 
-def test_analyze_file_upload(monkeypatch, fake_llm) -> None:
+def test_analyze_stream_sse(monkeypatch, fake_llm) -> None:
     import app.core.orchestrator as orchestrator
 
     monkeypatch.setattr(orchestrator, "build_llm", lambda: fake_llm)
 
-    resp = client.post(
-        "/api/v1/analyze/file",
-        data={"content_type": "markdown"},
-        files={"file": ("test.md", b"# Title\ncontent", "text/markdown")},
-    )
-    assert resp.status_code == 200
+    with client.stream(
+        "POST",
+        "/api/v1/analyze/stream",
+        json={
+            "document": {
+                "content": "Hello world",
+                "content_type": "markdown",
+                "source": "text",
+            }
+        },
+    ) as resp:
+        assert resp.status_code == 200
+        raw = "".join(resp.iter_text())
 
+    assert "data:" in raw
+    assert '"type": "step"' in raw or '"type":"step"' in raw.replace(" ", "")
+    assert '"type": "complete"' in raw or '"type":"complete"' in raw.replace(" ", "")
+    assert "guardrails" in raw

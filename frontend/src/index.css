@@ -688,6 +688,44 @@ input[type="file"]::file-selector-button:hover {
   line-height: 1.4;
 }
 
+.pipeline-checklist {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.35rem 1rem;
+}
+
+.pipeline-step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.pipeline-step-mark {
+  flex-shrink: 0;
+  width: 1.1rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pipeline-step-done .pipeline-step-mark {
+  color: var(--accent, #818cf8);
+}
+
+.pipeline-step-done {
+  color: var(--text);
+}
+
+.pipeline-step-pending {
+  color: var(--text-muted);
+}
+
 .history-header {
   display: flex;
   align-items: center;

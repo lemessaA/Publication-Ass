@@ -26,12 +26,12 @@ Work through phases in order when building out Publication Assistant. Each block
 
 ## Phase 2 — UX & trust
 
-### 2A — Real analysis progress
+### 2A — Real analysis progress ✅
 **Steps**
-1. Replace spinner-only UI with **SSE** or **polling** endpoint reporting agent completion.
-2. Map events to a checklist UI (Clarity ✓, Structure ✓, …).
+1. ~~Replace spinner-only UI with **SSE** endpoint reporting agent completion.~~ `POST /api/v1/analyze/stream`, `POST /api/v1/analyze/file/stream`.
+2. ~~Map events to a checklist UI (Clarity ✓, Structure ✓, …).~~ — `App.tsx` pipeline checklist.
 
-**Done when:** User sees which agents finished without opening logs.
+**Done when:** User sees which agents finished without opening logs — **met.**
 
 ### 2B — Section-scoped analysis
 **Steps**
