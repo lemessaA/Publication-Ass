@@ -865,6 +865,9 @@ input[type="file"]::file-selector-button:hover {
 .collapser-title {
   font-weight: 600;
   letter-spacing: -0.02em;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Monospace blocks */
