@@ -16,6 +16,7 @@ from app.api.models import (
     ErrorResponse,
     HistoryItem,
     ExportFormat,
+    SectionScope,
 )
 from app.core.orchestrator import iter_analysis_stream_events, run_full_analysis
 from app.core.safety import sanitize_input_text
@@ -29,6 +30,26 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _analysis_request_from_upload(
+    document: DocumentInput,
+    *,
+    section_hint: str | None,
+    section_start_line: int | None,
+    section_end_line: int | None,
+) -> AnalysisRequest:
+    """Build ``AnalysisRequest`` with optional section scope (multipart form fields)."""
+    scope: SectionScope | None = None
+    if section_start_line is not None or section_end_line is not None:
+        if section_start_line is None or section_end_line is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Provide both section_start_line and section_end_line for section-scoped analysis.",
+            )
+        scope = SectionScope(start_line=section_start_line, end_line=section_end_line)
+    hint = (section_hint or "").strip() or None
+    return AnalysisRequest(document=document, section_scope=scope, section_hint=hint)
 
 
 def _format_sse(payload: dict) -> str:
@@ -187,6 +208,9 @@ async def analyze_publication_stream(request: AnalysisRequest) -> StreamingRespo
 async def analyze_file(
     file: UploadFile = File(...),
     content_type: str = Form("markdown"),
+    section_hint: str | None = Form(None),
+    section_start_line: int | None = Form(None),
+    section_end_line: int | None = Form(None),
 ) -> AnalysisResponse:
     """Helper endpoint for file-based uploads."""
     try:
@@ -202,7 +226,12 @@ async def analyze_file(
             source="file",
             filename=file.filename,
         )
-        request = AnalysisRequest(document=document)
+        request = _analysis_request_from_upload(
+            document,
+            section_hint=section_hint,
+            section_start_line=section_start_line,
+            section_end_line=section_end_line,
+        )
         return await analyze_publication(request)
     except HTTPException:
         raise
