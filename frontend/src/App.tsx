@@ -450,8 +450,25 @@ const App: React.FC = () => {
               <div className="analysis-loading-text">
                 <strong>Running analysis…</strong>
                 <p className="analysis-loading-hint">
-                  Multiple reviewers run in parallel on the server; this may take up to a minute.
+                  Parallel agents complete in any order; each step updates as the server finishes it.
                 </p>
+                <ul className="pipeline-checklist">
+                  {PIPELINE_STEPS.map(({ id, label }) => {
+                    const st = pipelineSteps[id];
+                    const done = st === "done";
+                    return (
+                      <li
+                        key={id}
+                        className={`pipeline-step ${done ? "pipeline-step-done" : "pipeline-step-pending"}`}
+                      >
+                        <span className="pipeline-step-mark" aria-hidden>
+                          {done ? "✓" : "○"}
+                        </span>
+                        <span>{label}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             </div>
           )}
