@@ -12,7 +12,13 @@ type Tab = "text" | "file";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
-const EXAMPLE_TEXT = `We propose a novel transformer architecture that improves attention efficiency using sparse routing. Our model reduces FLOPs by 40% while maintaining accuracy on GLUE benchmarks. We evaluate on SQuAD and achieve state-of-the-art results with fewer parameters.`;
+const EXAMPLE_TEXT = `This article explains how we built a small app that suggests edits for research drafts.
+
+We wanted something simple: paste your text, get clearer wording and a tighter outline. The tool checks whether claims match what you wrote and suggests figures where a diagram would help.
+
+We tested it on a few lab reports and student essays. Feedback was positive: people spent less time fixing unclear sentences. Limitations: it does not replace a human reviewer and should not be used for sensitive data.
+
+In short, the goal is to make first drafts easier to improve—not to write the paper for you.`;
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>("text");
