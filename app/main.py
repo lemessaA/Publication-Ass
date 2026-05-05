@@ -28,10 +28,10 @@ app = FastAPI(
 )
 
 # CORS for the Vite/React front-end (see FRONTEND_ORIGIN).
-if settings.allowed_origin:
+if settings.allowed_origins:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[settings.allowed_origin],
+        allow_origins=settings.allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

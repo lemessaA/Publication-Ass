@@ -25,8 +25,14 @@ class Settings(BaseModel):
     environment: str = Field(default=os.getenv("ENVIRONMENT", "development"))
     debug: bool = Field(default=os.getenv("DEBUG", "false").lower() == "true")
 
-    # Frontend
-    allowed_origin: str | None = Field(default=os.getenv("FRONTEND_ORIGIN", None))
+    # Frontend — comma-separated URLs for CORS (e.g. prod + Vercel preview)
+    allowed_origins: list[str] = Field(
+        default_factory=lambda: [
+            x.strip()
+            for x in (os.getenv("FRONTEND_ORIGIN") or "").split(",")
+            if x.strip()
+        ]
+    )
 
     # Simple history storage (file-based path or "memory")
     history_backend: str = Field(default=os.getenv("HISTORY_BACKEND", "memory"))
