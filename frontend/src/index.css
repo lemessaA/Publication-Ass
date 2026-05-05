@@ -560,11 +560,12 @@ input[type="file"]::file-selector-button:hover {
   align-items: flex-start;
   gap: 1rem;
   margin-top: 1rem;
-  padding: 1.1rem 1.25rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: rgba(9, 9, 11, 0.55);
-  backdrop-filter: blur(12px);
+  padding: 0.65rem 0 0.65rem 1rem;
+  border: none;
+  border-left: 3px solid rgba(129, 140, 248, 0.55);
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -619,19 +620,20 @@ input[type="file"]::file-selector-button:hover {
   gap: 0.75rem;
   flex-wrap: wrap;
   text-align: left;
-  padding: 0.55rem 0.75rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: rgba(9, 9, 11, 0.45);
+  padding: 0.65rem 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
   font: inherit;
-  transition: border-color var(--transition), background var(--transition);
+  transition: color var(--transition), border-color var(--transition);
 }
 
 .history-row:hover:not(:disabled) {
-  border-color: rgba(129, 140, 248, 0.45);
-  background: rgba(99, 102, 241, 0.08);
+  border-bottom-color: rgba(129, 140, 248, 0.45);
+  color: var(--accent-cyan);
 }
 
 .history-row:disabled {
@@ -746,19 +748,37 @@ input[type="file"]::file-selector-button:hover {
   animation: shimmer 2s infinite;
 }
 
-/* Results grid — min(100%, …) prevents horizontal overflow on narrow viewports */
-.results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: 1.5rem;
+/* Analysis output — single column on page (no card panels) */
+.results-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   width: 100%;
   min-width: 0;
+  padding-top: 0.25rem;
 }
 
-.result-card {
-  transition: var(--transition);
+.analysis-block {
+  padding: 1.25rem 0 1.75rem;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  transition: color var(--transition);
   transform-origin: top;
   animation: slideIn 0.3s ease-out;
+}
+
+.analysis-block:last-child {
+  border-bottom: none;
+}
+
+.analysis-block h2 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  transition: color 0.2s;
+}
+
+.analysis-block:hover h2 .collapser-title {
+  color: var(--accent-cyan);
 }
 
 @keyframes slideIn {
@@ -770,21 +790,6 @@ input[type="file"]::file-selector-button:hover {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.result-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.result-card h2 {
-  margin: 0 0 1rem;
-  font-size: 1.25rem;
-  transition: color 0.2s;
-}
-
-.result-card:hover h2 {
-  color: var(--accent-cyan);
 }
 
 .collapser {
