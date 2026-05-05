@@ -38,6 +38,7 @@ def _analysis_request_from_upload(
     section_hint: str | None,
     section_start_line: int | None,
     section_end_line: int | None,
+    redact_before_llm: bool = False,
 ) -> AnalysisRequest:
     """Build ``AnalysisRequest`` with optional section scope (multipart form fields)."""
     scope: SectionScope | None = None
@@ -49,7 +50,12 @@ def _analysis_request_from_upload(
             )
         scope = SectionScope(start_line=section_start_line, end_line=section_end_line)
     hint = (section_hint or "").strip() or None
-    return AnalysisRequest(document=document, section_scope=scope, section_hint=hint)
+    return AnalysisRequest(
+        document=document,
+        section_scope=scope,
+        section_hint=hint,
+        redact_before_llm=redact_before_llm,
+    )
 
 
 def _format_sse(payload: dict) -> str:
@@ -211,6 +217,7 @@ async def analyze_file(
     section_hint: str | None = Form(None),
     section_start_line: int | None = Form(None),
     section_end_line: int | None = Form(None),
+    redact_before_llm: bool = Form(False),
 ) -> AnalysisResponse:
     """Helper endpoint for file-based uploads."""
     try:

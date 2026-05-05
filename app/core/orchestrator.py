@@ -26,6 +26,7 @@ from app.config import get_settings
 from app.core.document_window import window_document_for_llm
 from app.core.guardrails import apply_guardrails
 from app.core.prompt_context import format_reviewer_context
+from app.core.redaction import format_redaction_warnings, redact_for_llm
 from app.core.section_extract import slice_document_for_section_analysis
 from app.core.retry import call_with_retries
 from app.core.safety import filter_analysis_result
@@ -231,6 +232,13 @@ def prepare_orchestrator_state(request: AnalysisRequest) -> tuple[OrchestratorSt
         )
         warnings.extend(sec_warnings)
         req_llm.document.content = sliced
+
+    if req_llm.redact_before_llm:
+        redacted, red_counts = redact_for_llm(req_llm.document.content)
+        req_llm.document.content = redacted
+        notice = format_redaction_warnings(red_counts)
+        if notice:
+            warnings.append(notice)
 
     pre_window_len = len(req_llm.document.content)
     new_content, truncated = window_document_for_llm(

@@ -151,6 +151,10 @@ class AnalysisRequest(BaseModel):
         default=None,
         description="Optional note for reviewers (e.g. section title). Shown in addition to persona.",
     )
+    redact_before_llm: bool = Field(
+        default=False,
+        description="If true, replace email/phone/grant-like strings before sending text to the LLM.",
+    )
 
     @model_validator(mode="after")
     def section_scope_fits_document(self) -> AnalysisRequest:
