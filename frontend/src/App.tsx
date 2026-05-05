@@ -126,24 +126,9 @@ const App: React.FC = () => {
     return () => window.removeEventListener("keydown", down);
   }, [activeTab, textContent, file]);
 
-  // Mock progress during analysis
   useEffect(() => {
-    if (!isLoading) {
-      setAnalysisProgress({});
-      return;
-    }
-    const agents = ["clarity", "structure", "technical", "visuals", "summary", "tags"];
-    const interval = setInterval(() => {
-      setAnalysisProgress((prev) => {
-        const next = { ...prev };
-        agents.forEach((agent) => {
-          next[agent] = Math.min(100, (next[agent] ?? 0) + Math.random() * 30);
-        });
-        return next;
-      });
-    }, 400);
-    return () => clearInterval(interval);
-  }, [isLoading]);
+    void refreshHistory();
+  }, [refreshHistory]);
 
   const handleAnalyzeText = async () => {
     setError(null);
@@ -176,6 +161,7 @@ const App: React.FC = () => {
       }
       const data: AnalysisResponse = await resp.json();
       setResult(data.result);
+      void refreshHistory();
     } catch (e: any) {
       setError(e?.message ?? "Failed to analyze text.");
     } finally {
