@@ -82,6 +82,8 @@ HISTORY_BACKEND=memory                         # or "file"
 HISTORY_DIR=./history
 ENVIRONMENT=development
 DEBUG=false
+MAX_INPUT_CHARS=200000                      # Max paste/upload size for guardrails (characters)
+MAX_LLM_INPUT_CHARS=24000                    # Max chars sent to Groq per request (head+tail window); lower if you hit 413/token limits
 ```
 
 ---

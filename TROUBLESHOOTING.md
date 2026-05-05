@@ -31,7 +31,12 @@ This document lists common issues, symptoms, and recovery steps.
 - Symptom: Unexpected 500s after edits or dependency upgrades.
 - Recovery: Run tests with `pytest`, check stack traces in logs, and revert to the last known good commit if necessary.
 
-7) Performance / slow responses
+7) Groq returns `413` / "Request too large" / token limits
+- Symptom: Logs show HTTP `413` or provider messages like "reduce your message size" when analyzing long manuscripts.
+- Cause: The combined prompt (instructions plus document) exceeds what your Groq model/tier accepts per request.
+- Recovery: The backend sends only the first and last portions of long texts (`MAX_LLM_INPUT_CHARS`, default `24000`). If errors persist, lower `MAX_LLM_INPUT_CHARS` further or paste a shorter excerpt. Raise it only when your Groq plan supports larger contexts.
+
+8) Performance / slow responses
 - Symptom: Long analysis times.
 - Causes: LLM latency, large inputs, or synchronous blocking steps.
 - Mitigations: Increase LLM parallelism (if supported), limit input size, add batching, or move expensive steps to background jobs with a task queue.
