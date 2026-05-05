@@ -77,7 +77,7 @@ GROQ_API_KEY=your_groq_api_key_here
 
 # Optional
 GROQ_MODEL=openai/gpt-oss-120b
-FRONTEND_ORIGIN=http://localhost:5173          # Enables CORS for the frontend
+FRONTEND_ORIGIN=http://localhost:5173    # CORS: comma-separated origins in production (see DEPLOYMENT.md)
 HISTORY_BACKEND=memory                         # or "file"
 HISTORY_DIR=./history
 ENVIRONMENT=development
@@ -85,6 +85,8 @@ DEBUG=false
 MAX_INPUT_CHARS=200000                      # Max paste/upload size for guardrails (characters)
 MAX_LLM_INPUT_CHARS=24000                    # Max chars sent to Groq per request (head+tail window); lower if you hit 413/token limits
 ```
+
+**Production (Render + Vercel):** see [`DEPLOYMENT.md`](DEPLOYMENT.md) for `VITE_API_BASE_URL`, `FRONTEND_ORIGIN`, and platform env setup.
 
 ---
 
@@ -120,7 +122,7 @@ pytest -q
 ### Deployment notes
 
 - There is no built-in authentication or rate limiting; put the service behind a reverse proxy or API gateway with TLS, auth, and throttling if it is exposed on the internet.
-
+- **Render (API) + Vercel (UI):** step-by-step guide in [`DEPLOYMENT.md`](DEPLOYMENT.md). The frontend build needs `VITE_API_BASE_URL=https://<your-render-host>/api/v1`; the API needs `FRONTEND_ORIGIN` listing your Vercel URL(s), comma-separated if needed.
 ---
 
 ## Troubleshooting
