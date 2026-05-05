@@ -149,57 +149,22 @@ body {
   font-size: 0.8125rem;
 }
 
-/* Glass cards */
-.card {
-  background: var(--surface-1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-md), var(--shadow-glow);
-  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+/* Page sections — content sits on the body background (no card chrome) */
+.page-section {
+  padding: 1.75rem 0 2rem;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
   min-width: 0;
   max-width: 100%;
 }
 
-.card:hover {
-  border-color: var(--border-hover);
+.page-section--history {
+  /* same as page-section; hook for optional tweaks */
 }
 
-.input-card {
-  position: relative;
-  overflow: hidden;
-  max-width: 920px;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  background: linear-gradient(
-    155deg,
-    rgba(39, 39, 42, 0.55) 0%,
-    rgba(24, 24, 27, 0.72) 50%,
-    rgba(24, 24, 27, 0.55) 100%
-  );
-}
-
-.input-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    145deg,
-    rgba(129, 140, 248, 0.35),
-    transparent 40%,
-    rgba(6, 182, 212, 0.15)
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  opacity: 0.85;
+.page-section--history .history-title {
+  margin: 0;
+  font-size: 1rem;
 }
 
 /* Tabs — segmented control */
@@ -590,12 +555,6 @@ input[type="file"]::file-selector-button:hover {
   margin-bottom: 0;
 }
 
-.history-card {
-  max-width: 920px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
 .analysis-loading {
   display: flex;
   align-items: flex-start;
@@ -622,12 +581,7 @@ input[type="file"]::file-selector-button:hover {
   line-height: 1.4;
 }
 
-.history-card .history-title {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.history-header {
+.analysis-loading-text strong {
   display: flex;
   align-items: center;
   justify-content: space-between;
