@@ -84,13 +84,16 @@ DEBUG=false
 
 ## API reference
 
-Base URL: `http://localhost:8000/api/v1`
+API base URL: `http://localhost:8000/api/v1`
 
 - `POST /analyze` – Analyze raw text (JSON)
 - `POST /analyze/file` – Analyze uploaded file (multipart)
-- `GET /healthz` – Health check
+- `GET /history` – List saved analyses (only when `HISTORY_BACKEND=file`)
+- `GET /history/{id}` – Load one saved analysis
 
-See `app/api/endpoints.py` and `app/api/models.py` for schemas.
+Health check (not under `/api/v1`): `GET http://localhost:8000/healthz`
+
+See `app/api/endpoints.py`, `app/api/models.py`, and `API_SPEC.md` for schemas.
 
 ---
 
@@ -107,6 +110,10 @@ pytest -q
 
 ### Switching LLM provider
 - Update `app/services/llm_service.py` and `app/config.py`
+
+### Deployment notes
+
+- There is no built-in authentication or rate limiting; put the service behind a reverse proxy or API gateway with TLS, auth, and throttling if it is exposed on the internet.
 
 ---
 

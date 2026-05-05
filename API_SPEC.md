@@ -62,8 +62,10 @@ Examples
 ```bash
 curl -X POST http://localhost:8000/api/v1/analyze \
   -H "Content-Type: application/json" \
-  -d '{"document": {"content": "My draft...", "content_type": "markdown", "source":"inline"}}'
+  -d '{"document": {"content": "My draft...", "content_type": "markdown", "source":"text"}}'
 ```
+
+Health check (root app, not under `/api/v1`): `GET http://localhost:8000/healthz`
 
 Observability
 - Responses include consistent logging events (see `app/api/endpoints.py`) that can be parsed to correlate `analysis_id` values across logs.
