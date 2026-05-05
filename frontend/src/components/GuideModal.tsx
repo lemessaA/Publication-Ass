@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 interface GuideModalProps {
   isOpen: boolean;
@@ -49,7 +49,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
           ))}
         </div>
         <div className="modal-footer">
-          <button className="btn primary" onClick={onClose}>
+          <button type="button" className="btn btn-gradient btn-sm" onClick={onClose}>
             Got it
           </button>
         </div>
