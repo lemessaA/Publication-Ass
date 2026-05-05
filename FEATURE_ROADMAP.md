@@ -33,12 +33,12 @@ Work through phases in order when building out Publication Assistant. Each block
 
 **Done when:** User sees which agents finished without opening logs — **met.**
 
-### 2B — Section-scoped analysis
+### 2B — Section-scoped analysis ✅
 **Steps**
-1. API: optional `section_hint` on `AnalysisRequest` or route `/analyze/section`.
-2. Orchestrator: pass only selected slice to agents.
+1. ~~API: optional ``section_scope`` + ``section_hint`` on ``AnalysisRequest``.~~ — `app/api/models.py`; multipart form fields on file routes.
+2. ~~Orchestrator: pass only selected slice to agents (before LLM windowing).~~ — `app/core/section_extract.py`, `prepare_orchestrator_state`.
 
-**Done when:** Long papers can be reviewed per section without hitting limits.
+**Done when:** Long papers can be reviewed per section without hitting limits — **met.**
 
 ### 2C — Redaction / privacy mode
 **Steps**

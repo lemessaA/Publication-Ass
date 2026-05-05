@@ -309,6 +309,61 @@ body {
   gap: 1rem;
 }
 
+.section-scope-panel {
+  margin-bottom: 1.25rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-input);
+}
+
+.section-scope-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.section-scope-panel .field-help {
+  margin-top: 0.5rem;
+}
+
+.section-scope-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.field-label-inline {
+  margin-bottom: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.8rem;
+}
+
+.input {
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-input);
+  color: var(--text);
+  width: 100%;
+}
+
+.input-narrow {
+  width: 6rem;
+  max-width: 100%;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--focus-border);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
 /* Form */
 .field-label {
   font-weight: 600;

@@ -271,28 +271,78 @@ const App: React.FC = () => {
       setError("Please paste some text to analyze.");
       return;
     }
+    const hint = sectionHint.trim();
+    const sTrim = sectionLineStart.trim();
+    const eTrim = sectionLineEnd.trim();
+    if ((!sTrim && eTrim) || (sTrim && !eTrim)) {
+      setError("Provide both start and end line numbers for section scope, or leave both blank.");
+      return;
+    }
+    let section_scope: { start_line: number; end_line: number } | undefined;
+    if (sTrim && eTrim) {
+      const start = parseInt(sTrim, 10);
+      const end = parseInt(eTrim, 10);
+      if (!Number.isFinite(start) || !Number.isFinite(end) || start < 1 || end < 1) {
+        setError("Section lines must be positive integers.");
+        return;
+      }
+      section_scope = { start_line: start, end_line: end };
+    }
+    const body: Record<string, unknown> = {
+      document: {
+        content: trimmed,
+        content_type: "markdown",
+        source: "text",
+      },
+    };
+    if (section_scope) {
+      body.section_scope = section_scope;
+    }
+    if (hint) {
+      body.section_hint = hint;
+    }
     await runAnalyzeStream({
       mode: "json",
-      body: {
-        document: {
-          content: trimmed,
-          content_type: "markdown",
-          source: "text",
-        },
-      },
+      body,
     });
-  }, [textContent, runAnalyzeStream]);
+  }, [textContent, sectionLineStart, sectionLineEnd, sectionHint, runAnalyzeStream]);
 
   const handleAnalyzeFile = useCallback(async () => {
     if (!file) {
       setError("Please choose a file to upload.");
       return;
     }
+    const hint = sectionHint.trim();
+    const sTrim = sectionLineStart.trim();
+    const eTrim = sectionLineEnd.trim();
+    if ((!sTrim && eTrim) || (sTrim && !eTrim)) {
+      setError("Provide both start and end line numbers for section scope, or leave both blank.");
+      return;
+    }
+    let startNum: number | undefined;
+    let endNum: number | undefined;
+    if (sTrim && eTrim) {
+      const start = parseInt(sTrim, 10);
+      const end = parseInt(eTrim, 10);
+      if (!Number.isFinite(start) || !Number.isFinite(end) || start < 1 || end < 1) {
+        setError("Section lines must be positive integers.");
+        return;
+      }
+      startNum = start;
+      endNum = end;
+    }
     const formData = new FormData();
     formData.append("file", file);
     formData.append("content_type", "markdown");
+    if (startNum !== undefined && endNum !== undefined) {
+      formData.append("section_start_line", String(startNum));
+      formData.append("section_end_line", String(endNum));
+    }
+    if (hint) {
+      formData.append("section_hint", hint);
+    }
     await runAnalyzeStream({ mode: "form", formData });
-  }, [file, runAnalyzeStream]);
+  }, [file, sectionLineStart, sectionLineEnd, sectionHint, runAnalyzeStream]);
 
   const handleExportMarkdown = useCallback(() => {
     if (!result) return;
@@ -363,6 +413,53 @@ const App: React.FC = () => {
               Upload file
             </button>
           </div>
+
+          <details className="section-scope-panel">
+            <summary>Section scope (optional)</summary>
+            <p className="field-help">
+              1-based line numbers over the pasted or uploaded text (as shown in your editor). Only that range is sent to
+              the model, which helps with long papers and context limits.
+            </p>
+            <div className="section-scope-row">
+              <label className="field-label field-label-inline" htmlFor="section-start">
+                Start line
+              </label>
+              <input
+                id="section-start"
+                className="input input-narrow"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={sectionLineStart}
+                onChange={(e) => setSectionLineStart(e.target.value)}
+                placeholder="e.g. 10"
+              />
+              <label className="field-label field-label-inline" htmlFor="section-end">
+                End line
+              </label>
+              <input
+                id="section-end"
+                className="input input-narrow"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={sectionLineEnd}
+                onChange={(e) => setSectionLineEnd(e.target.value)}
+                placeholder="e.g. 45"
+              />
+            </div>
+            <label className="field-label" htmlFor="section-hint">
+              Section hint (optional)
+            </label>
+            <input
+              id="section-hint"
+              className="input"
+              type="text"
+              value={sectionHint}
+              onChange={(e) => setSectionHint(e.target.value)}
+              placeholder="e.g. Methods — related work"
+            />
+          </details>
 
           {activeTab === "text" && (
             <div className="tab-panel">
