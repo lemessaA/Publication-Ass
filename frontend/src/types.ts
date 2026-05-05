@@ -74,6 +74,7 @@ export interface AnalysisRequest {
   /** Inclusive 1-based line range within pasted ``document.content`` */
   section_scope?: { start_line: number; end_line: number };
   section_hint?: string | null;
+  redact_before_llm?: boolean;
 }
 
 export interface AnalysisResponse {
