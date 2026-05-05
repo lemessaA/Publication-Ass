@@ -582,7 +582,7 @@ input[type="file"]::file-selector-button:hover {
   line-height: 1.4;
 }
 
-.analysis-loading-text strong {
+.history-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -809,9 +809,7 @@ input[type="file"]::file-selector-button:hover {
 
 .collapser:hover {
   color: var(--accent-cyan);
-  background: rgba(99, 102, 241, 0.08);
-  padding: 0.25rem;
-  margin: -0.25rem;
+  background: rgba(99, 102, 241, 0.06);
 }
 
 .collapser-chevron {
@@ -831,7 +829,7 @@ input[type="file"]::file-selector-button:hover {
 
 /* Monospace blocks */
 .monospace-block {
-  background: rgba(9, 9, 11, 0.65);
+  background: rgba(9, 9, 11, 0.35);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 1rem 1.1rem;
@@ -848,9 +846,8 @@ input[type="file"]::file-selector-button:hover {
 }
 
 .monospace-block:hover {
-  border-color: rgba(129, 140, 248, 0.4);
-  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.12);
-  background: rgba(9, 9, 11, 0.85);
+  border-color: rgba(129, 140, 248, 0.45);
+  background: rgba(9, 9, 11, 0.5);
 }
 
 .monospace-block.with-actions {
@@ -873,23 +870,22 @@ li {
   margin-bottom: 0.25rem;
 }
 
-/* Visual cards */
+/* Visual suggestions — flat rows (no mini-cards) */
 .visual-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: 1rem;
+  gap: 1rem 1.5rem;
   margin: 1rem 0;
   min-width: 0;
 }
 
-.visual-card {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 1rem 1.1rem;
-  background: rgba(9, 9, 11, 0.35);
+.visual-item {
+  padding: 0.65rem 0 0.85rem 0.85rem;
+  border-left: 2px solid rgba(129, 140, 248, 0.35);
+  background: transparent;
 }
 
-.visual-card-header {
+.visual-item-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -1259,25 +1255,6 @@ li {
   margin-bottom: 0;
 }
 
-/* Animations — subtle hover polish */
-.card {
-  transition: box-shadow 0.22s ease, border-color 0.22s ease;
-}
-
-.card:hover {
-  box-shadow: var(--shadow-md), 0 0 60px -20px rgba(99, 102, 241, 0.2);
-}
-
-.visual-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.visual-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-hover);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .page {
@@ -1299,11 +1276,6 @@ li {
   .guardrail-indicator {
     flex: 1 1 100%;
     min-width: 0;
-  }
-
-  .results-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
   }
 
   .actions {
@@ -1371,8 +1343,10 @@ li {
     text-align: center;
   }
 
-  .card {
-    padding: 1.1rem;
+  .page-section,
+  .analysis-block {
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .textarea-wrapper .btn-xs {
