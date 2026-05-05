@@ -20,11 +20,11 @@ def window_document_for_llm(content: str, max_chars: int) -> tuple[str, bool]:
         return content, False
 
     sep_len = len(_SEPARATOR)
-    if max_chars <= sep_len + 400:
+    usable = max_chars - sep_len
+    if usable < 80:
         return content[:max_chars], True
 
-    usable = max_chars - sep_len
-    head_chars = int(usable * 0.58)
+    head_chars = max(40, int(usable * 0.58))
     tail_chars = usable - head_chars
     head = content[:head_chars]
     tail = content[-tail_chars:] if tail_chars > 0 else ""
