@@ -47,6 +47,27 @@ def test_analyze_happy_path(monkeypatch, fake_llm) -> None:
     assert data["result"]["guardrails"]["status"] == "ok"
 
 
+def test_analyze_redaction_json(monkeypatch, fake_llm) -> None:
+    import app.core.orchestrator as orchestrator
+
+    monkeypatch.setattr(orchestrator, "build_llm", lambda: fake_llm)
+
+    resp = client.post(
+        "/api/v1/analyze",
+        json={
+            "document": {
+                "content": "Hello reach me at nobody@example.org thanks.",
+                "content_type": "markdown",
+                "source": "text",
+            },
+            "redact_before_llm": True,
+        },
+    )
+    assert resp.status_code == 200
+    warns = resp.json()["result"].get("analysis_warnings") or []
+    assert any("redaction" in w.lower() for w in warns)
+
+
 def test_analyze_stream_sse(monkeypatch, fake_llm) -> None:
     import app.core.orchestrator as orchestrator
 
