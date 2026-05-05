@@ -98,7 +98,9 @@ REVIEWER_PERSONA=                            # Optional tone/audience for all ag
 API base URL: `http://localhost:8000/api/v1`
 
 - `POST /analyze` – Analyze raw text (JSON)
+- `POST /analyze/stream` – Same analysis as `POST /analyze`, streamed as SSE (`text/event-stream`) with per-node `step` events and a final `complete` payload
 - `POST /analyze/file` – Analyze uploaded file (multipart)
+- `POST /analyze/file/stream` – File upload with SSE progress + final `complete` event
 - `GET /history` – List saved analyses (only when `HISTORY_BACKEND=file`)
 - `GET /history/{id}` – Load one saved analysis
 
