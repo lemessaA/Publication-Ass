@@ -20,11 +20,13 @@ Endpoints
   "document": {
     "content": "# Title\nThis is the manuscript text...",
     "content_type": "markdown",
-    "source": "inline",
+    "source": "text",
     "filename": null
   }
 }
 ```
+
+Optional flags on the request body (all default to `true`): `run_clarity`, `run_structure`, `run_technical`, `run_visuals`, `run_summary`, `run_tags` — set to `false` to skip an agent.
 
 - Successful response: `200` with AnalysisResponse (see `app/api/models.py`). Contains `id`, `created_at`, `request`, and `result` with agent outputs and guardrails status.
 - Possible errors: `400` if guardrails reject input or validation fails; `500` on internal failure.

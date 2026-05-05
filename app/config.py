@@ -21,9 +21,7 @@ class Settings(BaseModel):
         default=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
         description="Groq model name to use for all LLM calls.",
     )
-    # app/config.py
 
-    # Backendopenai/gpt-oss-20b
     environment: str = Field(default=os.getenv("ENVIRONMENT", "development"))
     debug: bool = Field(default=os.getenv("DEBUG", "false").lower() == "true")
 

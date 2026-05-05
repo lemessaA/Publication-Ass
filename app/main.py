@@ -20,7 +20,7 @@ app = FastAPI(
     description="Multi-agent assistant for improving AI/ML publications.",
 )
 
-# CORS for Streamlit front-end.
+# CORS for the Vite/React front-end (see FRONTEND_ORIGIN).
 if settings.allowed_origin:
     app.add_middleware(
         CORSMiddleware,

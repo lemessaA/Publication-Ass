@@ -37,7 +37,7 @@ source .venv/bin/activate
 # Dependencies
 pip install -r requirements.txt
 
-# Run (dev)
+# Run (dev, from repository root)
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -49,6 +49,17 @@ npm run dev
 ```
 
 The frontend defaults to calling `http://localhost:8000/api/v1`. Override with `VITE_API_BASE_URL` in `frontend/.env` if needed.
+
+### Serving the UI from FastAPI (production-style)
+
+The API serves a built SPA from a `static/` directory at the repo root (`/` and `/static/…`). After building the frontend, copy the Vite output into `static/` so it matches what the Docker image does:
+
+```bash
+cd frontend && npm run build
+mkdir -p ../static && cp -r dist/* ../static/
+```
+
+Then run `uvicorn` as above and open `http://localhost:8000/`.
 
 ---
 
