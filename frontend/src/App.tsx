@@ -193,6 +193,7 @@ const App: React.FC = () => {
       }
       const data: AnalysisResponse = await resp.json();
       setResult(data.result);
+      void refreshHistory();
     } catch (e: any) {
       setError(e?.message ?? "Failed to analyze file.");
     } finally {
@@ -341,26 +342,62 @@ const App: React.FC = () => {
           )}
 
           {isLoading && (
-            <div className="progress-sections">
-              <h4>Analysis progress</h4>
-              {(["clarity", "structure", "technical", "visuals", "summary", "tags"] as const).map((key, index) => (
-                <div key={key} className="progress-item" style={{ animationDelay: `${index * 100}ms` }}>
-                  <AnimatedProgress
-                    value={analysisProgress[key] ?? 0}
-                    label={key.charAt(0).toUpperCase() + key.slice(1)}
-                    color="blue"
-                    size="sm"
-                    showPercentage
-                    animated
-                  />
-                </div>
-              ))}
+            <div className="analysis-loading" role="status" aria-live="polite">
+              <div className="spinner spinner-lg" aria-hidden />
+              <div className="analysis-loading-text">
+                <strong>Running analysis…</strong>
+                <p className="analysis-loading-hint">
+                  Multiple reviewers run in parallel on the server; this may take up to a minute.
+                </p>
+              </div>
             </div>
           )}
         </section>
 
+        <section className="card input-card history-card">
+          <div className="history-header">
+            <h2 className="history-title">Saved analyses</h2>
+            <button type="button" className="btn btn-xs btn-secondary" onClick={() => void refreshHistory()}>
+              Refresh
+            </button>
+          </div>
+          <p className="field-help history-help">
+            Appears when the server uses <code>HISTORY_BACKEND=file</code>. Otherwise the list stays empty.
+          </p>
+          {historyError && (
+            <div className="alert alert-error history-alert">
+              {historyError}
+            </div>
+          )}
+          {historyItems.length === 0 && !historyError ? (
+            <p className="history-empty">No saved analyses yet.</p>
+          ) : (
+            <ul className="history-list">
+              {historyItems.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className="history-row"
+                    onClick={() => void openHistoryItem(item.id)}
+                    disabled={loadingHistoryId === item.id}
+                  >
+                    <span className="history-date">
+                      {new Date(item.created_at).toLocaleString(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </span>
+                    <span className="history-id">{item.id.slice(0, 8)}…</span>
+                    {loadingHistoryId === item.id ? <span className="history-loading">Loading…</span> : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
         {result && (
-          <section className="results-grid">
+          <section className="results-grid" id="analysis-results">
             {[
               { key: "clarity", title: "Clarity", icon: "✨" },
               { key: "structure", title: "Structure", icon: "📋" },
