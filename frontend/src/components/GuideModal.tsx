@@ -14,20 +14,25 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
       description: "Use the text tab to paste markdown/LaTeX/plain text, or drag & drop a .md/.txt file.",
     },
     {
-      title: "2. Click Analyze",
+      title: "2. Optional: limit to a section",
+      description:
+        "Expand “Section scope” and enter start/end line numbers (1-based, matching your pasted or uploaded file). Only that slice is sent to reviewers. Add a short hint so agents know which part of the paper this is.",
+    },
+    {
+      title: "3. Click Analyze",
       description: "The app will run six agents in parallel to improve clarity, structure, technical soundness, visuals, summary, and tags.",
     },
     {
-      title: "3. Review suggestions",
+      title: "4. Review suggestions",
       description:
         "Each section is collapsible. Use the copy button to grab improved text or abstracts. When results are shown, use Export Markdown in the header to download the full report as a .md file.",
     },
     {
-      title: "4. Guardrails",
+      title: "5. Guardrails",
       description: "If content is rejected, you’ll see a badge and reason at the top.",
     },
     {
-      title: "5. Keyboard shortcuts",
+      title: "6. Keyboard shortcuts",
       description: "Press Ctrl+Enter (or Cmd+Enter) to analyze, Escape to close modals.",
     },
   ];

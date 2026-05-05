@@ -101,6 +101,7 @@ API base URL: `http://localhost:8000/api/v1`
 - `POST /analyze/stream` – Same analysis as `POST /analyze`, streamed as SSE (`text/event-stream`) with per-node `step` events and a final `complete` payload
 - `POST /analyze/file` – Analyze uploaded file (multipart)
 - `POST /analyze/file/stream` – File upload with SSE progress + final `complete` event
+- Optional **section scope** (JSON): `section_scope: { "start_line": N, "end_line": M }` (1-based inclusive lines of `document.content`) and optional `section_hint`. Multipart file routes accept `section_start_line`, `section_end_line`, `section_hint` form fields.
 - `GET /history` – List saved analyses (only when `HISTORY_BACKEND=file`)
 - `GET /history/{id}` – Load one saved analysis
 
