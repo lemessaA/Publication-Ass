@@ -4,8 +4,8 @@ This document lists common issues, symptoms, and recovery steps.
 
 1) CORS errors from the frontend
 - Symptom: Browser console shows CORS blocked when calling the backend.
-- Cause: `FRONTEND_ORIGIN` not set or mismatched.
-- Recovery: Set `FRONTEND_ORIGIN` to your Vite URL (e.g., `http://localhost:5173`) in the environment and restart the backend.
+- Cause: `FRONTEND_ORIGIN` not set, mismatched scheme/host, or missing a preview URL.
+- Recovery: Set `FRONTEND_ORIGIN` to your frontend origin(s). Use comma-separated values for multiple URLs (e.g. `http://localhost:5173` locally, or `https://my-app.vercel.app` in production). Restart the backend after changing environment variables.
 
 2) `GROQ_API_KEY` missing / LLM errors
 - Symptom: Requests return 500 with LLM errors or responses are empty/invalid.
