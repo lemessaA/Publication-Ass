@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Dict, Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class ContentType(str, Enum):
@@ -105,6 +105,19 @@ class GuardrailResult(BaseModel):
     details: Optional[Dict[str, Any]] = None
 
 
+class SectionScope(BaseModel):
+    """1-based inclusive line range over ``document.content`` (``splitlines()`` semantics)."""
+
+    start_line: int = Field(ge=1, description="First line to include (1-based).")
+    end_line: int = Field(ge=1, description="Last line to include (1-based).")
+
+    @model_validator(mode="after")
+    def end_after_start(self) -> SectionScope:
+        if self.end_line < self.start_line:
+            raise ValueError("end_line must be greater than or equal to start_line.")
+        return self
+
+
 class AnalysisResult(BaseModel):
     clarity: Optional[ClarityFeedback] = None
     structure: Optional[StructureFeedback] = None
@@ -130,6 +143,26 @@ class AnalysisRequest(BaseModel):
     run_visuals: bool = True
     run_summary: bool = True
     run_tags: bool = True
+    section_scope: Optional[SectionScope] = Field(
+        default=None,
+        description="If set, only this line range is sent to reviewers and the LLM (after sanitization).",
+    )
+    section_hint: Optional[str] = Field(
+        default=None,
+        description="Optional note for reviewers (e.g. section title). Shown in addition to persona.",
+    )
+
+    @model_validator(mode="after")
+    def section_scope_fits_document(self) -> AnalysisRequest:
+        if self.section_scope is None:
+            return self
+        from app.core.section_extract import slice_document_for_section_analysis
+
+        try:
+            slice_document_for_section_analysis(self.document.content, self.section_scope)
+        except ValueError as exc:
+            raise ValueError(str(exc)) from exc
+        return self
 
 
 class AnalysisResponse(BaseModel):

@@ -25,11 +25,34 @@ from app.agents.tag_generator import run_tag_generator_agent
 from app.config import get_settings
 from app.core.document_window import window_document_for_llm
 from app.core.guardrails import apply_guardrails
+from app.core.prompt_context import format_reviewer_context
+from app.core.section_extract import slice_document_for_section_analysis
 from app.core.retry import call_with_retries
 from app.core.safety import filter_analysis_result
 from app.services.llm_service import build_llm
 
 logger = logging.getLogger(__name__)
+
+
+def _combined_reviewer_context(request: AnalysisRequest, persona: str) -> str:
+    """Persona plus optional section hint / scope instructions for agent prompts."""
+    base = format_reviewer_context(persona)
+    extras: list[str] = []
+    hint = (request.section_hint or "").strip()
+    if hint:
+        extras.append(f"Section focus (from author):\n{hint}")
+    if request.section_scope:
+        sc = request.section_scope
+        extras.append(
+            f"Analysis scope: Only lines {sc.start_line}–{sc.end_line} of the pasted document "
+            "are included in the excerpt below."
+        )
+    if not extras:
+        return base
+    extra_block = "\n\n".join(extras)
+    if base:
+        return base.rstrip() + "\n\nAdditional scope:\n" + extra_block + "\n\n---\n\n"
+    return f"Additional scope:\n{extra_block}\n\n---\n\n"
 
 
 class OrchestratorState(TypedDict, total=False):
@@ -196,16 +219,26 @@ def get_graph():
 
 
 def prepare_orchestrator_state(request: AnalysisRequest) -> tuple[OrchestratorState, list[str]]:
-    """Window document text for LLM limits and build initial LangGraph state."""
+    """Apply optional section slice, window document text for LLM limits, build LangGraph state."""
     settings = get_settings()
     req_llm = request.model_copy(deep=True)
+    warnings: list[str] = []
+
+    if req_llm.section_scope is not None:
+        sliced, sec_warnings = slice_document_for_section_analysis(
+            req_llm.document.content,
+            req_llm.section_scope,
+        )
+        warnings.extend(sec_warnings)
+        req_llm.document.content = sliced
+
+    pre_window_len = len(req_llm.document.content)
     new_content, truncated = window_document_for_llm(
         req_llm.document.content,
         settings.max_llm_input_chars,
     )
     req_llm.document.content = new_content
 
-    warnings: list[str] = []
     if truncated:
         warnings.append(
             "Document was shortened for the language model context limit "
@@ -214,14 +247,16 @@ def prepare_orchestrator_state(request: AnalysisRequest) -> tuple[OrchestratorSt
         )
         logger.info(
             "document_windowed_for_llm original_len=%s windowed_len=%s max_llm_input_chars=%s",
-            len(request.document.content),
+            pre_window_len,
             len(new_content),
             settings.max_llm_input_chars,
         )
 
+    reviewer_context = _combined_reviewer_context(req_llm, settings.reviewer_persona)
+
     initial_state: OrchestratorState = {
         "request": req_llm,
-        "reviewer_context": settings.reviewer_persona,
+        "reviewer_context": reviewer_context,
     }
     return initial_state, warnings
 
