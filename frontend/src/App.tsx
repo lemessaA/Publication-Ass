@@ -1,8 +1,11 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import type { AnalysisResponse, AnalysisResult, HistoryItem } from "./types";
+import type { Theme } from "./theme";
+import { applyTheme, resolveTheme, toggleTheme as themeFlip } from "./theme";
 import { GuideModal } from "./components/GuideModal";
 import { Tooltip } from "./components/Tooltip";
 import { InteractiveButton } from "./components/InteractiveButton";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 type Tab = "text" | "file";
 
@@ -25,8 +28,13 @@ const App: React.FC = () => {
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [loadingHistoryId, setLoadingHistoryId] = useState<string | null>(null);
+  const [theme, setTheme] = useState<Theme>(() => resolveTheme());
 
   const guardrailStatus = result?.guardrails.status;
+
+  const handleThemeToggle = useCallback(() => {
+    setTheme((prev) => themeFlip(prev));
+  }, []);
 
   const refreshHistory = useCallback(async () => {
     setHistoryError(null);
@@ -228,6 +236,7 @@ const App: React.FC = () => {
           </p>
         </div>
         <div className="header-actions">
+          <ThemeToggle theme={theme} onToggle={handleThemeToggle} />
           <Tooltip text="Press '?' for help">
             <button className="btn btn-secondary btn-xs" onClick={() => setShowGuide(true)}>
               ? Help
