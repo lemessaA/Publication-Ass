@@ -4,23 +4,23 @@ Work through phases in order when building out Publication Assistant. Each block
 
 ---
 
-## Phase 1 — Ship-ready polish *(partially implemented)*
+## Phase 1 — Ship-ready polish ✅ *implemented (see code & `exportReport.ts`)*
 
-### 1A — Export report as Markdown
+### 1A — Export report as Markdown ✅
 **Steps**
-1. Add `analysisResultToMarkdown()` that turns `AnalysisResult` into a `.md` document with headings per section.
-2. Add an **Export Markdown** control after analysis completes; trigger browser download (`Blob` + temporary `<a download>`).
-3. *(Optional)* Add `GET /api/v1/export/{format}` later if you want server-generated PDFs.
+1. ~~Add `analysisResultToMarkdown()`~~ — `frontend/src/exportReport.ts`.
+2. ~~**Export Markdown** button~~ — appears in the header when results exist; downloads `.md` via `Blob`.
+3. *(Optional)* Add `GET /api/v1/export/{format}` later for PDFs.
 
-**Done when:** User gets a downloadable `.md` file with clarity, structure, technical, visuals, summary, tags, guardrails, warnings.
+**Done when:** User downloads a `.md` with all sections — **met.**
 
-### 1B — Reviewer persona (environment-driven)
+### 1B — Reviewer persona (environment-driven) ✅
 **Steps**
-1. Add `REVIEWER_PERSONA` to config (free-text instructions).
-2. Central helper prepends context to every agent prompt block.
-3. Document in README / `.env.sample`.
+1. ~~`REVIEWER_PERSONA` in config~~ — `app/config.py`.
+2. ~~Prepended to every agent prompt~~ — `app/core/prompt_context.py`, all agents, orchestrator `reviewer_context` state.
+3. ~~README / `.env.sample`~~.
 
-**Done when:** Changing env text measurably shifts tone (e.g. strict venue vs undergraduate thesis).
+**Done when:** Env steers reviewer tone — **met** (restart API after changing env).
 
 ---
 
