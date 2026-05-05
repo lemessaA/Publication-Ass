@@ -4,7 +4,7 @@ from app.core.redaction import format_redaction_warnings, redact_for_llm
 
 
 def test_redact_email() -> None:
-    text, counts = redact_for_llm("Write to a@b.co for details.")
+    text, counts = redact_for_llm("Write to pi@example.edu for details.")
     assert "[EMAIL]" in text
     assert "a@b.co" not in text
     assert counts["email"] == 1

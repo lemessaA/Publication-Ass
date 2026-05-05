@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from typing import Dict
 
-# Rough email detector (not RFC-complete; good enough for privacy scrubbing).
+# Practical email shape (over-inclusive is OK for privacy scrubbing).
 _EMAIL_RE = re.compile(
-    r"\b[A-Za-z0-9][A-Za-z0-9._%+-]{0,63}@[A-Za-z0-9][A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
+    r"\b[A-Za-z0-9][A-Za-z0-9._%+-]{0,63}@[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Za-z]{2,}\b"
 )
 
 # US-style and compact international-ish digit runs (avoid bare 4-digit years).
