@@ -22,9 +22,52 @@ const App: React.FC = () => {
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["clarity", "structure", "technical", "visuals", "summary", "tags"]));
   const [showGuide, setShowGuide] = useState(false);
-  const [analysisProgress, setAnalysisProgress] = useState<Record<string, number>>({});
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [loadingHistoryId, setLoadingHistoryId] = useState<string | null>(null);
 
   const guardrailStatus = result?.guardrails.status;
+
+  const refreshHistory = useCallback(async () => {
+    setHistoryError(null);
+    try {
+      const resp = await fetch(`${API_BASE_URL}/history`);
+      if (!resp.ok) {
+        setHistoryItems([]);
+        return;
+      }
+      const data: HistoryItem[] = await resp.json();
+      setHistoryItems(data);
+    } catch {
+      setHistoryError("Could not load history (is the API running and CORS configured?)");
+      setHistoryItems([]);
+    }
+  }, []);
+
+  const openHistoryItem = useCallback(
+    async (id: string) => {
+      setError(null);
+      setLoadingHistoryId(id);
+      try {
+        const resp = await fetch(`${API_BASE_URL}/history/${id}`);
+        if (!resp.ok) {
+          const text = await resp.text();
+          throw new Error(`Could not open saved analysis: ${resp.status} ${text}`);
+        }
+        const item: HistoryItem = await resp.json();
+        setResult(item.result);
+        setCopiedSection(null);
+        requestAnimationFrame(() => {
+          document.getElementById("analysis-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Failed to load history item.");
+      } finally {
+        setLoadingHistoryId(null);
+      }
+    },
+    []
+  );
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
