@@ -188,27 +188,6 @@ const App: React.FC = () => {
     setExpandedSections(next);
   }, [expandedSections]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        if (activeTab === "text" && textContent.trim()) handleAnalyzeText();
-        if (activeTab === "file" && file) handleAnalyzeFile();
-      }
-      if (e.key === "Escape") {
-        setShowGuide(false);
-        setError(null);
-      }
-      if (e.key === "?" && !e.shiftKey) {
-        e.preventDefault();
-        setShowGuide(true);
-      }
-    };
-    window.addEventListener("keydown", down);
-    return () => window.removeEventListener("keydown", down);
-  }, [activeTab, textContent, file, handleAnalyzeText, handleAnalyzeFile]);
-
   useEffect(() => {
     void refreshHistory();
   }, [refreshHistory]);
@@ -348,6 +327,29 @@ const App: React.FC = () => {
     }
     await runAnalyzeStream({ mode: "form", formData });
   }, [file, sectionLineStart, sectionLineEnd, sectionHint, redactBeforeLlm, runAnalyzeStream]);
+
+  const guardrailStatus = result?.guardrails.status;
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (activeTab === "text" && textContent.trim()) void handleAnalyzeText();
+        if (activeTab === "file" && file) void handleAnalyzeFile();
+      }
+      if (e.key === "Escape") {
+        setShowGuide(false);
+        setError(null);
+      }
+      if (e.key === "?" && !e.shiftKey) {
+        e.preventDefault();
+        setShowGuide(true);
+      }
+    };
+    window.addEventListener("keydown", down);
+    return () => window.removeEventListener("keydown", down);
+  }, [activeTab, textContent, file, handleAnalyzeText, handleAnalyzeFile]);
 
   const handleExportMarkdown = useCallback(() => {
     if (!result) return;
