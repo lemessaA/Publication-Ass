@@ -1,9 +1,10 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
 from app.api.models import DocumentInput, StructureFeedback
+from app.core.llm_parse import JSON_ONLY_SUFFIX, parse_llm_json_dict
 
 
 def build_structure_prompt(document: DocumentInput) -> str:
@@ -15,6 +16,7 @@ def build_structure_prompt(document: DocumentInput) -> str:
         "Respond in JSON with keys 'suggested_outline' (list of strings) and "
         "'section_suggestions' (list of strings).\n\n"
         f"CONTENT:\n{document.content}"
+        + JSON_ONLY_SUFFIX
     )
 
 
@@ -24,25 +26,18 @@ def run_structure_agent(llm: BaseChatModel, document: DocumentInput) -> Structur
     response = llm.invoke([message])
 
     content = response.content
-    if isinstance(content, str):
-        try:
-            import json
+    data = parse_llm_json_dict(content)
 
-            data: Dict[str, Any] = json.loads(content)
-        except Exception:
-            # Fallback: simple heuristic outline using headings.
-            lines = [line.strip() for line in document.content.splitlines()]
-            outline = [line for line in lines if line.startswith("#")]
-            return StructureFeedback(suggested_outline=outline, section_suggestions=[])
-    elif isinstance(content, dict):
-        data = content
-    else:
-        data = {}
+    if data is None:
+        lines = [line.strip() for line in document.content.splitlines()]
+        outline = [line for line in lines if line.startswith("#")]
+        return StructureFeedback(suggested_outline=outline[:40], section_suggestions=[])
 
-    outline = [str(s) for s in data.get("suggested_outline", [])][:30]
-    section_suggestions = [str(s) for s in data.get("section_suggestions", [])][:30]
+    outline = [str(s).strip() for s in data.get("suggested_outline", []) if str(s).strip()][:30]
+    section_suggestions = [
+        str(s).strip() for s in data.get("section_suggestions", []) if str(s).strip()
+    ][:30]
     return StructureFeedback(
         suggested_outline=outline,
         section_suggestions=section_suggestions,
     )
-

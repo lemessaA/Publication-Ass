@@ -1,9 +1,15 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
 from app.api.models import DocumentInput, ClarityFeedback
+from app.core.llm_parse import (
+    JSON_ONLY_SUFFIX,
+    clean_comment_lines,
+    parse_llm_json_dict,
+    truncate_plain,
+)
 
 
 def build_clarity_prompt(document: DocumentInput) -> str:
@@ -15,35 +21,26 @@ def build_clarity_prompt(document: DocumentInput) -> str:
         "- simplifying complex sentences\n"
         "- keeping terminology precise\n\n"
         "Then provide 3–6 short bullet comments on major clarity improvements you made or recommend.\n\n"
-        "Respond in JSON with keys 'improved_text' and 'comments'.\n\n"
+        "Respond in JSON with keys 'improved_text' (string) and 'comments' (array of short strings).\n\n"
         f"CONTENT:\n{document.content}"
+        + JSON_ONLY_SUFFIX
     )
 
 
 def run_clarity_agent(llm: BaseChatModel, document: DocumentInput) -> ClarityFeedback:
-    """Run the clarity agent using the provided LLM."""
     prompt = build_clarity_prompt(document)
     message = HumanMessage(content=prompt)
     response = llm.invoke([message])
 
-    # We ask the model for JSON; be defensive in case format drifts.
     content = response.content
-    if isinstance(content, str):
-        try:
-            import json
+    data: Dict[str, Any] | None = parse_llm_json_dict(content)
 
-            data: Dict[str, Any] = json.loads(content)
-        except Exception:
-            # Fallback: treat full text as improved_text.
-            return ClarityFeedback(improved_text=content, comments=[])
-    elif isinstance(content, dict):
-        data = content
-    else:
-        # Fallback if model returns a list or other structure.
-        data = {"improved_text": str(content), "comments": []}
+    if data is None:
+        raw = content if isinstance(content, str) else str(content)
+        return ClarityFeedback(improved_text=truncate_plain(raw, 48_000), comments=[])
 
-    improved_text = data.get("improved_text") or document.content
+    improved_text = str(data.get("improved_text") or "").strip() or document.content
     comments_raw = data.get("comments", [])
-    comments = [str(c) for c in comments_raw][:10]
+    comments_list = [str(c) for c in comments_raw if c is not None][:12]
+    comments = clean_comment_lines(comments_list)[:8]
     return ClarityFeedback(improved_text=improved_text, comments=comments)
-

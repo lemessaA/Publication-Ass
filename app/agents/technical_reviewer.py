@@ -1,9 +1,10 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
 from app.api.models import DocumentInput, TechnicalFeedback
+from app.core.llm_parse import JSON_ONLY_SUFFIX, parse_llm_json_dict, split_fallback_paragraphs
 
 
 def build_technical_prompt(document: DocumentInput) -> str:
@@ -15,10 +16,11 @@ def build_technical_prompt(document: DocumentInput) -> str:
         "- unclear descriptions of models, training, data, or evaluation\n"
         "- unsubstantiated or overly strong claims\n\n"
         "Respond in JSON with keys:\n"
-        "- 'issues_found': list of concrete technical issues, each a short paragraph\n"
+        "- 'issues_found': list of concrete technical issues (each item one focused paragraph)\n"
         "- 'suggestions': list of concrete fixes or questions to resolve\n"
         "- 'overall_confidence': number between 0 and 1 expressing confidence in review\n\n"
         f"CONTENT:\n{document.content}"
+        + JSON_ONLY_SUFFIX
     )
 
 
@@ -30,25 +32,20 @@ def run_technical_reviewer_agent(
     response = llm.invoke([message])
 
     content = response.content
-    if isinstance(content, str):
-        try:
-            import json
+    data = parse_llm_json_dict(content)
 
-            data: Dict[str, Any] = json.loads(content)
-        except Exception:
-            # Fallback: treat full text as one suggestion.
-            return TechnicalFeedback(
-                issues_found=[],
-                suggestions=[content],
-                overall_confidence=0.5,
-            )
-    elif isinstance(content, dict):
-        data = content
-    else:
-        data = {}
+    raw_text = content if isinstance(content, str) else str(content)
 
-    issues = [str(i) for i in data.get("issues_found", [])][:30]
-    suggestions = [str(s) for s in data.get("suggestions", [])][:30]
+    if data is None:
+        chunks = split_fallback_paragraphs(raw_text, max_items=10, max_chars_each=900)
+        return TechnicalFeedback(
+            issues_found=[],
+            suggestions=chunks,
+            overall_confidence=0.45,
+        )
+
+    issues = [str(i).strip() for i in data.get("issues_found", []) if str(i).strip()][:30]
+    suggestions = [str(s).strip() for s in data.get("suggestions", []) if str(s).strip()][:30]
     try:
         confidence = float(data.get("overall_confidence", 0.5))
     except (TypeError, ValueError):
@@ -60,4 +57,3 @@ def run_technical_reviewer_agent(
         suggestions=suggestions,
         overall_confidence=confidence,
     )
-
