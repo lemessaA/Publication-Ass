@@ -534,14 +534,18 @@ input[type="file"]::file-selector-button:hover {
 }
 
 .alert-error {
-  background: var(--error-bg);
-  border: 1px solid #fca5a5;
+  background: transparent;
+  border: none;
+  border-left: 3px solid rgba(248, 113, 113, 0.65);
+  padding-left: 1rem;
   color: var(--error);
 }
 
 .alert-warn {
-  background: rgba(250, 204, 21, 0.1);
-  border: 1px solid rgba(250, 204, 21, 0.45);
+  background: transparent;
+  border: none;
+  border-left: 3px solid rgba(250, 204, 21, 0.55);
+  padding-left: 1rem;
   color: #fef9c3;
   font-size: 0.875rem;
   line-height: 1.45;
