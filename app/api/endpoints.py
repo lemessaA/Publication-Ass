@@ -286,6 +286,7 @@ async def analyze_file_stream(
             section_hint=section_hint,
             section_start_line=section_start_line,
             section_end_line=section_end_line,
+            redact_before_llm=redact_before_llm,
         )
 
         logger.info(
