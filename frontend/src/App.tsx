@@ -1,10 +1,8 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
-import type { AnalysisResponse, AnalysisResult } from "./types";
+import type { AnalysisResponse, AnalysisResult, HistoryItem } from "./types";
 import { GuideModal } from "./components/GuideModal";
 import { Tooltip } from "./components/Tooltip";
-import { ProgressBar } from "./components/ProgressBar";
 import { InteractiveButton } from "./components/InteractiveButton";
-import { AnimatedProgress } from "./components/AnimatedProgress";
 
 type Tab = "text" | "file";
 

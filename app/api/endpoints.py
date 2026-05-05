@@ -37,9 +37,9 @@ router = APIRouter()
 )
 async def analyze_publication(request: AnalysisRequest) -> AnalysisResponse:
     """Main endpoint for running the multi-agent analysis."""
+    analysis_id = str(uuid.uuid4())
     try:
         settings = get_settings()
-        analysis_id = str(uuid.uuid4())
         created_at = datetime.utcnow()
 
         # Minimal sanitization (Pydantic still does full validation).
