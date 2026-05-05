@@ -16,11 +16,12 @@ _PHONE_RE = re.compile(
     r"|(?<!\d)\+\d{10,14}\b"
 )
 
-# NIH-style (e.g. R01 CA123456) and NSF 7-digit award numbers when labeled.
+# NIH-style (e.g. R01 CA123456), NSF 7-digit awards, and labeled grant numbers.
 _GRANT_RE = re.compile(
     r"\bR\d{2}\s?[A-Z]{2}\s?\d{6,8}\b"
-    r"|(?i)\bNSF\s*[:\s-]?\s*\d{7}\b"
-    r"|(?i)\b(?:grant|award)\s*#?\s*[A-Z]?\d{6,10}\b"
+    r"|NSF\s*[:\s-]?\s*\d{7}\b"
+    r"|(?:grant|award)\s*#?\s*[A-Z]?\d{6,10}\b",
+    re.IGNORECASE,
 )
 
 
