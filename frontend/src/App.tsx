@@ -7,11 +7,11 @@ import { Tooltip } from "./components/Tooltip";
 import { InteractiveButton } from "./components/InteractiveButton";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { analysisResultToMarkdown, downloadTextFile } from "./exportReport";
+import { resolvedApiBaseUrl } from "./apiBase";
 
 type Tab = "text" | "file";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
+const API_BASE_URL = resolvedApiBaseUrl();
 
 /** Fixed display order; server may complete parallel agents in any order. */
 const PIPELINE_STEPS = [
