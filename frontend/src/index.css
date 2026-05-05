@@ -553,6 +553,22 @@ input[type="file"]::file-selector-button:hover {
   color: var(--error);
 }
 
+.alert-warn {
+  background: rgba(250, 204, 21, 0.1);
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  color: #fef9c3;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.alert-warn p {
+  margin: 0 0 0.4rem;
+}
+
+.alert-warn p:last-child {
+  margin-bottom: 0;
+}
+
 .history-card {
   max-width: 920px;
   margin-left: auto;
