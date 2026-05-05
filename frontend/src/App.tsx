@@ -238,7 +238,7 @@ const App: React.FC = () => {
       </header>
 
       <main className="page-main">
-        <section className="card input-card">
+        <section className="page-section">
           <div className="tabs">
             <button
               className={`tab ${activeTab === "text" ? "tab-active" : ""}`}
@@ -352,7 +352,7 @@ const App: React.FC = () => {
           )}
         </section>
 
-        <section className="card input-card history-card">
+        <section className="page-section page-section--history">
           <div className="history-header">
             <h2 className="history-title">Saved analyses</h2>
             <button type="button" className="btn btn-xs btn-secondary" onClick={() => void refreshHistory()}>
@@ -403,7 +403,7 @@ const App: React.FC = () => {
         )}
 
         {result && (
-          <section className="results-grid" id="analysis-results">
+          <section className="results-stack" id="analysis-results">
             {[
               { key: "clarity", title: "Clarity" },
               { key: "structure", title: "Structure" },
@@ -412,7 +412,7 @@ const App: React.FC = () => {
               { key: "summary", title: "Summary" },
               { key: "tags", title: "Titles & tags" },
             ].map(({ key, title }) => (
-              <div key={key} className="card result-card">
+              <section key={key} className="analysis-block">
                 <h2>
                   <button
                     className="collapser"
@@ -497,8 +497,8 @@ const App: React.FC = () => {
                         {result.visuals.suggestions.length > 0 && (
                           <div className="visual-grid">
                             {result.visuals.suggestions.map((v, idx) => (
-                              <article key={idx} className="visual-card">
-                                <header className="visual-card-header">
+                              <article key={idx} className="visual-item">
+                                <header className="visual-item-header">
                                   <span className="visual-dot" aria-hidden />
                                   <div className="visual-title-block">
                                     <h3 className="visual-title">{v.title}</h3>
@@ -590,7 +590,7 @@ const App: React.FC = () => {
                     )}
                   </>
                 )}
-              </div>
+              </section>
             ))}
           </section>
         )}
