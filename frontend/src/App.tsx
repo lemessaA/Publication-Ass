@@ -6,6 +6,7 @@ import { GuideModal } from "./components/GuideModal";
 import { Tooltip } from "./components/Tooltip";
 import { InteractiveButton } from "./components/InteractiveButton";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { analysisResultToMarkdown, downloadTextFile } from "./exportReport";
 
 type Tab = "text" | "file";
 
@@ -215,6 +216,13 @@ const App: React.FC = () => {
     }
   };
 
+  const handleExportMarkdown = useCallback(() => {
+    if (!result) return;
+    const md = analysisResultToMarkdown(result);
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    downloadTextFile(`publication-assistant-report-${stamp}.md`, md);
+  }, [result]);
+
   const guardrailBadge = useMemo(() => {
     if (!result) return null;
     if (guardrailStatus === "ok") {
@@ -248,6 +256,13 @@ const App: React.FC = () => {
               ? Help
             </button>
           </Tooltip>
+          {result && (
+            <Tooltip text="Download all sections as a Markdown file">
+              <button type="button" className="btn btn-secondary btn-xs" onClick={handleExportMarkdown}>
+                Export Markdown
+              </button>
+            </Tooltip>
+          )}
           {guardrailBadge && <div className="guardrail-indicator">{guardrailBadge}</div>}
         </div>
       </header>

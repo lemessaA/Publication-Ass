@@ -19,7 +19,8 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
     },
     {
       title: "3. Review suggestions",
-      description: "Each section is collapsible. Use the copy button to grab improved text or abstracts.",
+      description:
+        "Each section is collapsible. Use the copy button to grab improved text or abstracts. When results are shown, use Export Markdown in the header to download the full report as a .md file.",
     },
     {
       title: "4. Guardrails",

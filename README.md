@@ -84,7 +84,10 @@ ENVIRONMENT=development
 DEBUG=false
 MAX_INPUT_CHARS=200000                      # Max paste/upload size for guardrails (characters)
 MAX_LLM_INPUT_CHARS=24000                    # Max chars sent to Groq per request (head+tail window); lower if you hit 413/token limits
+REVIEWER_PERSONA=                            # Optional tone/audience for all agents (e.g. strict venue vs thesis). See FEATURE_ROADMAP.md.
 ```
+
+**Feature roadmap (step-by-step plans):** [`FEATURE_ROADMAP.md`](FEATURE_ROADMAP.md).
 
 **Production (Render + Vercel):** see [`DEPLOYMENT.md`](DEPLOYMENT.md) for `VITE_API_BASE_URL`, `FRONTEND_ORIGIN`, and platform env setup.
 
