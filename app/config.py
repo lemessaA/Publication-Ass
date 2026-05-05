@@ -9,6 +9,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _parse_allowed_origins() -> list[str]:
+    """Comma-separated FRONTEND_ORIGIN; trim whitespace and trailing slashes (browser Origins have none)."""
+    raw = os.getenv("FRONTEND_ORIGIN") or ""
+    out: list[str] = []
+    for part in raw.split(","):
+        s = part.strip()
+        if not s:
+            continue
+        s = s.rstrip("/")
+        out.append(s)
+    return out
+
+
 class Settings(BaseModel):
     """Application-wide configuration settings."""
 
@@ -26,13 +39,7 @@ class Settings(BaseModel):
     debug: bool = Field(default=os.getenv("DEBUG", "false").lower() == "true")
 
     # Frontend — comma-separated URLs for CORS (e.g. prod + Vercel preview)
-    allowed_origins: list[str] = Field(
-        default_factory=lambda: [
-            x.strip()
-            for x in (os.getenv("FRONTEND_ORIGIN") or "").split(",")
-            if x.strip()
-        ]
-    )
+    allowed_origins: list[str] = Field(default_factory=lambda: _parse_allowed_origins())
 
     # Simple history storage (file-based path or "memory")
     history_backend: str = Field(default=os.getenv("HISTORY_BACKEND", "memory"))
