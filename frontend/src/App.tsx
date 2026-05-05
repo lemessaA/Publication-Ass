@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import type { AnalysisResponse, AnalysisResult, HistoryItem } from "./types";
 import type { Theme } from "./theme";
-import { applyTheme, resolveTheme, toggleTheme as themeFlip } from "./theme";
+import { resolveTheme, toggleTheme as themeFlip } from "./theme";
 import { GuideModal } from "./components/GuideModal";
 import { Tooltip } from "./components/Tooltip";
 import { InteractiveButton } from "./components/InteractiveButton";
