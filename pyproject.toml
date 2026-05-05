@@ -9,8 +9,7 @@ description = "Multi-agent publication assistant (FastAPI + LangGraph)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "fastapi==0.135.1",
-    "uvicorn[standard]==0.34.0",
+    "fastapi[standard]==0.135.1",
     "requests==2.32.3",
     "pydantic==2.11.7",
     "langchain-core==1.2.16",
