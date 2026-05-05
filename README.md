@@ -102,6 +102,7 @@ API base URL: `http://localhost:8000/api/v1`
 - `POST /analyze/file` – Analyze uploaded file (multipart)
 - `POST /analyze/file/stream` – File upload with SSE progress + final `complete` event
 - Optional **section scope** (JSON): `section_scope: { "start_line": N, "end_line": M }` (1-based inclusive lines of `document.content`) and optional `section_hint`. Multipart file routes accept `section_start_line`, `section_end_line`, `section_hint` form fields.
+- Optional **privacy redaction** (JSON): `redact_before_llm: true` replaces common email-, phone-, and grant-like strings before the LLM; file uploads use form field `redact_before_llm=true`.
 - `GET /history` – List saved analyses (only when `HISTORY_BACKEND=file`)
 - `GET /history/{id}` – Load one saved analysis
 

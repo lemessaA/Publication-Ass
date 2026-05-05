@@ -14,9 +14,9 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
       description: "Use the text tab to paste markdown/LaTeX/plain text, or drag & drop a .md/.txt file.",
     },
     {
-      title: "2. Optional: limit to a section",
+      title: "2. Optional: scope & privacy",
       description:
-        "Expand “Section scope” and enter start/end line numbers (1-based, matching your pasted or uploaded file). Only that slice is sent to reviewers. Add a short hint so agents know which part of the paper this is.",
+        "Expand “Section scope” for line ranges or a section hint. Check “Redact email, phone…” to scrub common patterns before text is sent to the model.",
     },
     {
       title: "3. Click Analyze",

@@ -105,8 +105,7 @@ const App: React.FC = () => {
   const [sectionLineStart, setSectionLineStart] = useState("");
   const [sectionLineEnd, setSectionLineEnd] = useState("");
   const [sectionHint, setSectionHint] = useState("");
-
-  const guardrailStatus = result?.guardrails.status;
+  const [redactBeforeLlm, setRedactBeforeLlm] = useState(false);
 
   const handleThemeToggle = useCallback(() => {
     setTheme((prev) => themeFlip(prev));
@@ -301,11 +300,14 @@ const App: React.FC = () => {
     if (hint) {
       body.section_hint = hint;
     }
+    if (redactBeforeLlm) {
+      body.redact_before_llm = true;
+    }
     await runAnalyzeStream({
       mode: "json",
       body,
     });
-  }, [textContent, sectionLineStart, sectionLineEnd, sectionHint, runAnalyzeStream]);
+  }, [textContent, sectionLineStart, sectionLineEnd, sectionHint, redactBeforeLlm, runAnalyzeStream]);
 
   const handleAnalyzeFile = useCallback(async () => {
     if (!file) {
@@ -341,8 +343,11 @@ const App: React.FC = () => {
     if (hint) {
       formData.append("section_hint", hint);
     }
+    if (redactBeforeLlm) {
+      formData.append("redact_before_llm", "true");
+    }
     await runAnalyzeStream({ mode: "form", formData });
-  }, [file, sectionLineStart, sectionLineEnd, sectionHint, runAnalyzeStream]);
+  }, [file, sectionLineStart, sectionLineEnd, sectionHint, redactBeforeLlm, runAnalyzeStream]);
 
   const handleExportMarkdown = useCallback(() => {
     if (!result) return;
@@ -459,6 +464,16 @@ const App: React.FC = () => {
               onChange={(e) => setSectionHint(e.target.value)}
               placeholder="e.g. Methods — related work"
             />
+            <label className="checkbox-privacy">
+              <input
+                type="checkbox"
+                checked={redactBeforeLlm}
+                onChange={(e) => setRedactBeforeLlm(e.target.checked)}
+              />
+              <span>
+                Redact email, phone, and grant-like patterns before sending to the model (recommended for sensitive drafts)
+              </span>
+            </label>
           </details>
 
           {activeTab === "text" && (

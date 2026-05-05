@@ -364,6 +364,28 @@ body {
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
+.checkbox-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.checkbox-privacy input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  accent-color: var(--accent, #6366f1);
+  cursor: pointer;
+}
+
+.checkbox-privacy span {
+  cursor: pointer;
+}
+
 /* Form */
 .field-label {
   font-weight: 600;

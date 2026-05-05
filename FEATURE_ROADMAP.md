@@ -40,12 +40,12 @@ Work through phases in order when building out Publication Assistant. Each block
 
 **Done when:** Long papers can be reviewed per section without hitting limits — **met.**
 
-### 2C — Redaction / privacy mode
+### 2C — Redaction / privacy mode ✅
 **Steps**
-1. Regex pass for emails, phones, grant IDs.
-2. Toggle “strip before LLM”.
+1. ~~Regex pass for emails, phones, grant IDs.~~ — `app/core/redaction.py`
+2. ~~Toggle “strip before LLM”.~~ — `redact_before_llm` on `AnalysisRequest`; file routes use form field `redact_before_llm`; UI checkbox.
 
-**Done when:** Sensitive patterns reduced before provider calls.
+**Done when:** Sensitive patterns reduced before provider calls — **met.**
 
 ---
 
