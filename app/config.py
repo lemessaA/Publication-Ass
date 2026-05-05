@@ -46,6 +46,12 @@ class Settings(BaseModel):
         description="Max characters sent to the LLM (head+tail window). Increase only if your Groq tier/model allows.",
     )
 
+    # Prepended to every agent prompt (tone, venue, audience). Empty = default prompts only.
+    reviewer_persona: str = Field(
+        default=os.getenv("REVIEWER_PERSONA", "").strip(),
+        description="Optional instructions for all reviewers (e.g. strict NeurIPS-style vs student thesis).",
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:

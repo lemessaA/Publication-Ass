@@ -2,12 +2,15 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
 from app.api.models import DocumentInput, SummaryFeedback
+from app.core.prompt_context import format_reviewer_context
 from app.core.llm_parse import JSON_ONLY_SUFFIX, parse_llm_json_dict, truncate_plain
 
 
-def build_summary_prompt(document: DocumentInput) -> str:
+def build_summary_prompt(document: DocumentInput, reviewer_context: str = "") -> str:
+    ctx = format_reviewer_context(reviewer_context)
     return (
-        "You are assisting with an AI/ML publication.\n"
+        ctx
+        + "You are assisting with an AI/ML publication.\n"
         "Write a concise, publication-style abstract (max ~200 words) that captures:\n"
         "- the problem being solved\n"
         "- the proposed method\n"
@@ -20,8 +23,10 @@ def build_summary_prompt(document: DocumentInput) -> str:
     )
 
 
-def run_summary_agent(llm: BaseChatModel, document: DocumentInput) -> SummaryFeedback:
-    prompt = build_summary_prompt(document)
+def run_summary_agent(
+    llm: BaseChatModel, document: DocumentInput, reviewer_context: str = ""
+) -> SummaryFeedback:
+    prompt = build_summary_prompt(document, reviewer_context)
     message = HumanMessage(content=prompt)
     response = llm.invoke([message])
 

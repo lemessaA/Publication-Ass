@@ -2,12 +2,15 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
 from app.api.models import DocumentInput, StructureFeedback
+from app.core.prompt_context import format_reviewer_context
 from app.core.llm_parse import JSON_ONLY_SUFFIX, parse_llm_json_dict
 
 
-def build_structure_prompt(document: DocumentInput) -> str:
+def build_structure_prompt(document: DocumentInput, reviewer_context: str = "") -> str:
+    ctx = format_reviewer_context(reviewer_context)
     return (
-        "You are an expert in scientific writing and conference paper structure.\n"
+        ctx
+        + "You are an expert in scientific writing and conference paper structure.\n"
         "Analyze the following AI/ML document and propose an improved logical structure.\n"
         "1) Provide an ordered list of high-level sections for an ideal outline.\n"
         "2) Provide 3–8 concrete suggestions on how to reorganize or rename sections.\n\n"
@@ -18,8 +21,10 @@ def build_structure_prompt(document: DocumentInput) -> str:
     )
 
 
-def run_structure_agent(llm: BaseChatModel, document: DocumentInput) -> StructureFeedback:
-    prompt = build_structure_prompt(document)
+def run_structure_agent(
+    llm: BaseChatModel, document: DocumentInput, reviewer_context: str = ""
+) -> StructureFeedback:
+    prompt = build_structure_prompt(document, reviewer_context)
     message = HumanMessage(content=prompt)
     response = llm.invoke([message])
 

@@ -4,12 +4,15 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
 from app.api.models import DocumentInput, TechnicalFeedback
+from app.core.prompt_context import format_reviewer_context
 from app.core.llm_parse import JSON_ONLY_SUFFIX, parse_llm_json_dict, split_fallback_paragraphs
 
 
-def build_technical_prompt(document: DocumentInput) -> str:
+def build_technical_prompt(document: DocumentInput, reviewer_context: str = "") -> str:
+    ctx = format_reviewer_context(reviewer_context)
     return (
-        "You are a senior AI/ML researcher performing a technical review of a draft publication.\n"
+        ctx
+        + "You are a senior AI/ML researcher performing a technical review of a draft publication.\n"
         "Carefully check the content for:\n"
         "- incorrect or misleading explanations\n"
         "- missing assumptions or definitions\n"
@@ -25,9 +28,9 @@ def build_technical_prompt(document: DocumentInput) -> str:
 
 
 def run_technical_reviewer_agent(
-    llm: BaseChatModel, document: DocumentInput
+    llm: BaseChatModel, document: DocumentInput, reviewer_context: str = ""
 ) -> TechnicalFeedback:
-    prompt = build_technical_prompt(document)
+    prompt = build_technical_prompt(document, reviewer_context)
     message = HumanMessage(content=prompt)
     response = llm.invoke([message])
 

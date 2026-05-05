@@ -4,6 +4,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
 from app.api.models import DocumentInput, ClarityFeedback
+from app.core.prompt_context import format_reviewer_context
 from app.core.llm_parse import (
     JSON_ONLY_SUFFIX,
     clean_comment_lines,
@@ -12,9 +13,11 @@ from app.core.llm_parse import (
 )
 
 
-def build_clarity_prompt(document: DocumentInput) -> str:
+def build_clarity_prompt(document: DocumentInput, reviewer_context: str = "") -> str:
+    ctx = format_reviewer_context(reviewer_context)
     return (
-        "You are a senior technical editor specializing in AI/ML publications.\n"
+        ctx
+        + "You are a senior technical editor specializing in AI/ML publications.\n"
         "Rewrite the following content to maximize clarity and readability while preserving all technical meaning.\n"
         "Focus on:\n"
         "- reducing redundancy\n"
@@ -27,8 +30,10 @@ def build_clarity_prompt(document: DocumentInput) -> str:
     )
 
 
-def run_clarity_agent(llm: BaseChatModel, document: DocumentInput) -> ClarityFeedback:
-    prompt = build_clarity_prompt(document)
+def run_clarity_agent(
+    llm: BaseChatModel, document: DocumentInput, reviewer_context: str = ""
+) -> ClarityFeedback:
+    prompt = build_clarity_prompt(document, reviewer_context)
     message = HumanMessage(content=prompt)
     response = llm.invoke([message])
 

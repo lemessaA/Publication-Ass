@@ -4,12 +4,15 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
 from app.api.models import DocumentInput, TagFeedback
+from app.core.prompt_context import format_reviewer_context
 from app.core.llm_parse import JSON_ONLY_SUFFIX, parse_llm_json_dict, truncate_plain
 
 
-def build_tag_prompt(document: DocumentInput) -> str:
+def build_tag_prompt(document: DocumentInput, reviewer_context: str = "") -> str:
+    ctx = format_reviewer_context(reviewer_context)
     return (
-        "You are helping prepare an AI/ML paper for publication.\n"
+        ctx
+        + "You are helping prepare an AI/ML paper for publication.\n"
         "1) Propose 3–8 strong, informative titles suitable for conferences or arXiv.\n"
         "2) Propose 6–15 topical tags / keywords (e.g. 'reinforcement-learning', 'vision-transformers').\n\n"
         "Respond in JSON with keys:\n"
@@ -35,8 +38,10 @@ def _split_fallback_tag_lines(content: str) -> tuple[list[str], list[str]]:
     return titles, tags
 
 
-def run_tag_generator_agent(llm: BaseChatModel, document: DocumentInput) -> TagFeedback:
-    prompt = build_tag_prompt(document)
+def run_tag_generator_agent(
+    llm: BaseChatModel, document: DocumentInput, reviewer_context: str = ""
+) -> TagFeedback:
+    prompt = build_tag_prompt(document, reviewer_context)
     message = HumanMessage(content=prompt)
     response = llm.invoke([message])
 

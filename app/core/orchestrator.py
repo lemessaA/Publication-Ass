@@ -40,6 +40,7 @@ class OrchestratorState(TypedDict, total=False):
     """
 
     request: AnalysisRequest
+    reviewer_context: str
     guardrails: GuardrailResult
     clarity: ClarityFeedback
     structure: StructureFeedback
@@ -60,9 +61,11 @@ def supervisor_node(state: OrchestratorState) -> OrchestratorState:
 def clarity_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_clarity:
         return {}
+    ctx = state.get("reviewer_context") or ""
+
     def _call():
         llm = build_llm()
-        return run_clarity_agent(llm, state["request"].document)
+        return run_clarity_agent(llm, state["request"].document, ctx)
 
     clarity = call_with_retries(_call, description="clarity_agent")
     if clarity is None:
@@ -74,9 +77,11 @@ def clarity_node(state: OrchestratorState) -> OrchestratorState:
 def structure_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_structure:
         return {}
+    ctx = state.get("reviewer_context") or ""
+
     def _call():
         llm = build_llm()
-        return run_structure_agent(llm, state["request"].document)
+        return run_structure_agent(llm, state["request"].document, ctx)
 
     structure = call_with_retries(_call, description="structure_agent")
     if structure is None:
@@ -88,9 +93,11 @@ def structure_node(state: OrchestratorState) -> OrchestratorState:
 def technical_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_technical:
         return {}
+    ctx = state.get("reviewer_context") or ""
+
     def _call():
         llm = build_llm()
-        return run_technical_reviewer_agent(llm, state["request"].document)
+        return run_technical_reviewer_agent(llm, state["request"].document, ctx)
 
     technical = call_with_retries(_call, description="technical_reviewer_agent")
     if technical is None:
@@ -102,9 +109,11 @@ def technical_node(state: OrchestratorState) -> OrchestratorState:
 def visuals_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_visuals:
         return {}
+    ctx = state.get("reviewer_context") or ""
+
     def _call():
         llm = build_llm()
-        return run_visual_suggestion_agent(llm, state["request"].document)
+        return run_visual_suggestion_agent(llm, state["request"].document, ctx)
 
     visuals = call_with_retries(_call, description="visual_suggestion_agent")
     if visuals is None:
@@ -116,9 +125,11 @@ def visuals_node(state: OrchestratorState) -> OrchestratorState:
 def summary_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_summary:
         return {}
+    ctx = state.get("reviewer_context") or ""
+
     def _call():
         llm = build_llm()
-        return run_summary_agent(llm, state["request"].document)
+        return run_summary_agent(llm, state["request"].document, ctx)
 
     summary = call_with_retries(_call, description="summary_agent")
     if summary is None:
@@ -130,9 +141,11 @@ def summary_node(state: OrchestratorState) -> OrchestratorState:
 def tags_node(state: OrchestratorState) -> OrchestratorState:
     if not state["request"].run_tags:
         return {}
+    ctx = state.get("reviewer_context") or ""
+
     def _call():
         llm = build_llm()
-        return run_tag_generator_agent(llm, state["request"].document)
+        return run_tag_generator_agent(llm, state["request"].document, ctx)
 
     tags = call_with_retries(_call, description="tag_generator_agent")
     if tags is None:
