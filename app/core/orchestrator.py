@@ -22,6 +22,8 @@ from app.agents.technical_reviewer import run_technical_reviewer_agent
 from app.agents.visual_suggestion import run_visual_suggestion_agent
 from app.agents.summary_agent import run_summary_agent
 from app.agents.tag_generator import run_tag_generator_agent
+from app.config import get_settings
+from app.core.document_window import window_document_for_llm
 from app.core.guardrails import apply_guardrails
 from app.core.retry import call_with_retries
 from app.core.safety import filter_analysis_result
