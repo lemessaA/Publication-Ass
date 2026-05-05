@@ -71,6 +71,9 @@ export interface AnalysisRequest {
   run_visuals?: boolean;
   run_summary?: boolean;
   run_tags?: boolean;
+  /** Inclusive 1-based line range within pasted ``document.content`` */
+  section_scope?: { start_line: number; end_line: number };
+  section_hint?: string | null;
 }
 
 export interface AnalysisResponse {

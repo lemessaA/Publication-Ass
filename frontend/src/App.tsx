@@ -102,6 +102,9 @@ const App: React.FC = () => {
   const [pipelineSteps, setPipelineSteps] = useState<
     Partial<Record<PipelineStepId, "pending" | "done">>
   >({});
+  const [sectionLineStart, setSectionLineStart] = useState("");
+  const [sectionLineEnd, setSectionLineEnd] = useState("");
+  const [sectionHint, setSectionHint] = useState("");
 
   const guardrailStatus = result?.guardrails.status;
 

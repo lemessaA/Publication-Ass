@@ -1,6 +1,8 @@
 """Tests for section-scoped document slicing."""
 
-from app.api.models import DocumentInput, SectionScope
+import pytest
+
+from app.api.models import AnalysisRequest, DocumentInput, SectionScope
 from app.core.section_extract import slice_document_for_section_analysis
 
 
@@ -35,14 +37,8 @@ def test_start_beyond_document_raises() -> None:
 def test_analysis_request_validator_out_of_range() -> None:
     from pydantic import ValidationError
 
-    from app.api.models import AnalysisRequest
-
-    try:
+    with pytest.raises(ValidationError):
         AnalysisRequest(
             document=DocumentInput(content="x\ny\n", content_type="markdown", source="text"),
             section_scope=SectionScope(start_line=10, end_line=11),
         )
-    except ValidationError:
-        pass
-    else:
-        raise AssertionError("expected ValidationError")
