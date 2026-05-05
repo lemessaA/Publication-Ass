@@ -18,7 +18,7 @@ class Settings(BaseModel):
     # LLM / LangChain configuration (Groq)
     groq_api_key: str = Field(default_factory=lambda: os.getenv("GROQ_API_KEY", ""))
     groq_model: str = Field(
-        default=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+        default=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
         description="Groq model name to use for all LLM calls.",
     )
 
@@ -33,7 +33,7 @@ class Settings(BaseModel):
     history_dir: str = Field(default=os.getenv("HISTORY_DIR", "./history"))
 
     # Basic content guardrails
-    max_input_chars: int = 200000
+    max_input_chars: int = 2000000
 
 
 @lru_cache
