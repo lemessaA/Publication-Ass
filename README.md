@@ -38,6 +38,10 @@ source .venv/bin/activate
 pip install -e .
 
 # Run (dev, from repository root)
+# Option A — FastAPI CLI (reload + dev defaults)
+fastapi dev app/main.py --host 0.0.0.0
+
+# Option B — Uvicorn directly
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
