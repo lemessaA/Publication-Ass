@@ -52,7 +52,7 @@ npm install
 npm run dev
 ```
 
-The frontend defaults to calling `http://localhost:8000/api/v1`. Override with `VITE_API_BASE_URL` in `frontend/.env` if needed.
+The frontend defaults to calling `http://localhost:8000/api/v1`. Override with `VITE_API_BASE_URL` in `frontend/.env.local` or copy `frontend/.env.example` as a starting point.
 
 ### Serving the UI from FastAPI (production-style)
 
@@ -127,7 +127,7 @@ pytest -q
 
 ## Troubleshooting
 
-- **CORS errors**: Set `FRONTEND_ORIGIN` to your Vite dev URL (e.g., `http://localhost:5173`) and restart the backend.
+- **CORS errors**: Set `FRONTEND_ORIGIN` to your frontend origin(s)—comma-separated if you have several (e.g. Vercel prod + preview). Restart the backend after changes.
 - **Failed to fetch**: Ensure the backend is running on the expected host/port and that `VITE_API_BASE_URL` matches.
 - **LLM failures**: Verify `GROQ_API_KEY` is set and outbound network is allowed.
 
