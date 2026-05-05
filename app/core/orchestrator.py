@@ -220,7 +220,10 @@ def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
         )
 
     graph = get_graph()
-    initial_state: OrchestratorState = {"request": req_llm}
+    initial_state: OrchestratorState = {
+        "request": req_llm,
+        "reviewer_context": settings.reviewer_persona,
+    }
 
     # In a more advanced setup, you might stream intermediate updates back.
     final_state = graph.invoke(initial_state)
