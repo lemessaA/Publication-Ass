@@ -13,6 +13,6 @@ def build_llm() -> ChatGroq:
     return ChatGroq(
         model=settings.groq_model,
         api_key=settings.groq_api_key or None,
-        temperature=0.2,
+        temperature=0.1,
     )
 

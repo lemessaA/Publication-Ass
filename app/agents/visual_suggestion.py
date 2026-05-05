@@ -1,9 +1,10 @@
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
 from app.api.models import DocumentInput, VisualFeedback, VisualSuggestion
+from app.core.llm_parse import JSON_ONLY_SUFFIX, parse_llm_json_dict, split_fallback_paragraphs
 
 
 def build_visual_prompt(document: DocumentInput) -> str:
@@ -17,6 +18,7 @@ def build_visual_prompt(document: DocumentInput) -> str:
         "- 'suggestions': list of objects { 'title', 'description', 'type' }\n"
         "- 'formatting_tips': list of strings\n\n"
         f"CONTENT:\n{document.content}"
+        + JSON_ONLY_SUFFIX
     )
 
 
@@ -28,20 +30,15 @@ def run_visual_suggestion_agent(
     response = llm.invoke([message])
 
     content = response.content
-    if isinstance(content, str):
-        try:
-            import json
+    data = parse_llm_json_dict(content)
+    raw_text = content if isinstance(content, str) else str(content)
 
-            data: Dict[str, Any] = json.loads(content)
-        except Exception:
-            return VisualFeedback(
-                suggestions=[],
-                formatting_tips=[content],
-            )
-    elif isinstance(content, dict):
-        data = content
-    else:
-        data = {}
+    if data is None:
+        tips = split_fallback_paragraphs(raw_text, max_items=14, max_chars_each=500)
+        return VisualFeedback(
+            suggestions=[],
+            formatting_tips=tips,
+        )
 
     suggestions_raw: List[Dict[str, Any]] = data.get("suggestions", []) or []
     suggestions: List[VisualSuggestion] = []
@@ -49,17 +46,18 @@ def run_visual_suggestion_agent(
         try:
             suggestions.append(
                 VisualSuggestion(
-                    title=str(item.get("title", "Untitled visual suggestion")),
-                    description=str(item.get("description", "")),
-                    type=str(item.get("type", "diagram")),
+                    title=str(item.get("title", "Figure")).strip() or "Figure",
+                    description=str(item.get("description", "")).strip(),
+                    type=str(item.get("type", "diagram")).strip() or "diagram",
                 )
             )
         except Exception:
             continue
 
-    formatting_tips = [str(t) for t in data.get("formatting_tips", [])][:20]
+    formatting_tips = [
+        str(t).strip() for t in data.get("formatting_tips", []) if str(t).strip()
+    ][:20]
     return VisualFeedback(
         suggestions=suggestions,
         formatting_tips=formatting_tips,
     )
-
