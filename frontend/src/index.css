@@ -814,6 +814,18 @@ input[type="file"]::file-selector-button:hover {
   margin: -0.25rem;
 }
 
+.collapser-chevron {
+  flex-shrink: 0;
+  width: 1.35rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.collapser-title {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
 /* Monospace blocks */
 .monospace-block {
   background: rgba(9, 9, 11, 0.65);
@@ -877,8 +889,13 @@ li {
   margin-bottom: 0.5rem;
 }
 
-.visual-icon {
-  font-size: 1.5rem;
+.visual-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.45);
 }
 
 .visual-title-block {

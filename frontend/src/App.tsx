@@ -270,8 +270,8 @@ const App: React.FC = () => {
                   onChange={(e) => setTextContent(e.target.value)}
                   placeholder="Paste your draft here (markdown, LaTeX, or plain text)..."
                 />
-                <button className="btn btn-xs btn-secondary animate-fade-in" onClick={() => setTextContent(EXAMPLE_TEXT)}>
-                  ✨ Load example
+                <button className="btn btn-xs btn-secondary animate-fade-in" type="button" onClick={() => setTextContent(EXAMPLE_TEXT)}>
+                  Load example
                 </button>
               </div>
               <div className="actions">
@@ -280,7 +280,6 @@ const App: React.FC = () => {
                   disabled={isLoading || !textContent.trim()}
                   loading={isLoading}
                   tooltip={textContent.trim() ? "Analyze your document (Ctrl+Enter)" : "Please enter some text first"}
-                  icon="🔍"
                   variant="primary"
                 >
                   {isLoading ? "Analyzing..." : "Analyze text"}
@@ -323,7 +322,6 @@ const App: React.FC = () => {
                   disabled={isLoading || !file}
                   loading={isLoading}
                   tooltip={file ? "Analyze uploaded file" : "Please select a file first"}
-                  icon="📁"
                   variant="primary"
                 >
                   {isLoading ? "Analyzing..." : "Analyze file"}
@@ -399,13 +397,13 @@ const App: React.FC = () => {
         {result && (
           <section className="results-grid" id="analysis-results">
             {[
-              { key: "clarity", title: "Clarity", icon: "✨" },
-              { key: "structure", title: "Structure", icon: "📋" },
-              { key: "technical", title: "Technical review", icon: "🔬" },
-              { key: "visuals", title: "Visual suggestions", icon: "📊" },
-              { key: "summary", title: "Summary", icon: "📝" },
-              { key: "tags", title: "Titles & tags", icon: "🏷️" },
-            ].map(({ key, title, icon }) => (
+              { key: "clarity", title: "Clarity" },
+              { key: "structure", title: "Structure" },
+              { key: "technical", title: "Technical review" },
+              { key: "visuals", title: "Visual suggestions" },
+              { key: "summary", title: "Summary" },
+              { key: "tags", title: "Titles & tags" },
+            ].map(({ key, title }) => (
               <div key={key} className="card result-card">
                 <h2>
                   <button
@@ -413,7 +411,10 @@ const App: React.FC = () => {
                     onClick={() => toggleSection(key)}
                     aria-expanded={expandedSections.has(key)}
                   >
-                    {expandedSections.has(key) ? "▼" : "▶"} {icon} {title}
+                    <span className="collapser-chevron" aria-hidden>
+                      {expandedSections.has(key) ? "▼" : "▶"}
+                    </span>
+                    <span className="collapser-title">{title}</span>
                   </button>
                 </h2>
                 {expandedSections.has(key) && (
@@ -490,7 +491,7 @@ const App: React.FC = () => {
                             {result.visuals.suggestions.map((v, idx) => (
                               <article key={idx} className="visual-card">
                                 <header className="visual-card-header">
-                                  <div className="visual-icon">📊</div>
+                                  <span className="visual-dot" aria-hidden />
                                   <div className="visual-title-block">
                                     <h3 className="visual-title">{v.title}</h3>
                                     <span className="visual-type-pill">{v.type}</span>

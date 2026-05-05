@@ -19,7 +19,9 @@ from app.agents.tag_generator import build_tag_prompt, run_tag_generator_agent
 def test_prompts_include_document_content() -> None:
     doc = DocumentInput(content="Hello world", content_type="markdown", source="text")
     assert "Hello world" in build_clarity_prompt(doc)
+    assert "OUTPUT RULES" in build_clarity_prompt(doc)
     assert "Hello world" in build_structure_prompt(doc)
+    assert "OUTPUT RULES" in build_structure_prompt(doc)
     assert "Hello world" in build_technical_prompt(doc)
     assert "Hello world" in build_visual_prompt(doc)
     assert "Hello world" in build_summary_prompt(doc)
