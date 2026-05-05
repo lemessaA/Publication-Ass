@@ -13,6 +13,69 @@ type Tab = "text" | "file";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
+/** Fixed display order; server may complete parallel agents in any order. */
+const PIPELINE_STEPS = [
+  { id: "supervisor", label: "Guardrails" },
+  { id: "clarity", label: "Clarity" },
+  { id: "structure", label: "Structure" },
+  { id: "technical", label: "Technical review" },
+  { id: "visuals", label: "Visual suggestions" },
+  { id: "summary", label: "Summary" },
+  { id: "tags", label: "Titles & tags" },
+] as const;
+
+type PipelineStepId = (typeof PIPELINE_STEPS)[number]["id"];
+
+type SseEnvelope =
+  | { type: "start"; id: string; created_at: string }
+  | { type: "step"; step: string }
+  | { type: "complete"; response: AnalysisResponse };
+
+async function consumeAnalysisSseStream(
+  response: Response,
+  handlers: {
+    onStep?: (step: string) => void;
+    onComplete?: (data: AnalysisResponse) => void;
+  },
+): Promise<void> {
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Backend error ${response.status}: ${text}`);
+  }
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error("No response body from analysis stream.");
+  }
+  const decoder = new TextDecoder();
+  let buf = "";
+  let sawComplete = false;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let sep: number;
+    while ((sep = buf.indexOf("\n\n")) >= 0) {
+      const rawEvent = buf.slice(0, sep);
+      buf = buf.slice(sep + 2);
+      for (const line of rawEvent.split("\n")) {
+        if (!line.startsWith("data: ")) continue;
+        const json = line.slice(6).trim();
+        if (!json) continue;
+        const payload = JSON.parse(json) as SseEnvelope;
+        if (payload.type === "step") {
+          handlers.onStep?.(payload.step);
+        } else if (payload.type === "complete") {
+          sawComplete = true;
+          handlers.onComplete?.(payload.response);
+        }
+      }
+    }
+  }
+  if (!sawComplete) {
+    throw new Error("Stream ended before analysis completed.");
+  }
+}
+
 const EXAMPLE_TEXT = `This article explains how we built a small app that suggests edits for research drafts.
 
 We wanted something simple: paste your text, get clearer wording and a tighter outline. The tool checks whether claims match what you wrote and suggests figures where a diagram would help.
@@ -36,6 +99,9 @@ const App: React.FC = () => {
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [loadingHistoryId, setLoadingHistoryId] = useState<string | null>(null);
   const [theme, setTheme] = useState<Theme>(() => resolveTheme());
+  const [pipelineSteps, setPipelineSteps] = useState<
+    Partial<Record<PipelineStepId, "pending" | "done">>
+  >({});
 
   const guardrailStatus = result?.guardrails.status;
 
@@ -139,82 +205,91 @@ const App: React.FC = () => {
     };
     window.addEventListener("keydown", down);
     return () => window.removeEventListener("keydown", down);
-  }, [activeTab, textContent, file]);
+  }, [activeTab, textContent, file, handleAnalyzeText, handleAnalyzeFile]);
 
   useEffect(() => {
     void refreshHistory();
   }, [refreshHistory]);
 
-  const handleAnalyzeText = async () => {
-    setError(null);
-    setResult(null);
-    setCopiedSection(null);
+  const initPipeline = useCallback(() => {
+    const next: Partial<Record<PipelineStepId, "pending" | "done">> = {};
+    for (const s of PIPELINE_STEPS) {
+      next[s.id] = "pending";
+    }
+    setPipelineSteps(next);
+  }, []);
+
+  const runAnalyzeStream = useCallback(
+    async (input: { mode: "json"; body: object } | { mode: "form"; formData: FormData }) => {
+      setError(null);
+      setResult(null);
+      setCopiedSection(null);
+      initPipeline();
+      setIsLoading(true);
+      try {
+        const url =
+          input.mode === "json"
+            ? `${API_BASE_URL}/analyze/stream`
+            : `${API_BASE_URL}/analyze/file/stream`;
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: input.mode === "json" ? { "Content-Type": "application/json" } : undefined,
+          body: input.mode === "json" ? JSON.stringify(input.body) : input.formData,
+        });
+        await consumeAnalysisSseStream(resp, {
+          onStep: (step) => {
+            setPipelineSteps((prev) => ({
+              ...prev,
+              [step]: "done",
+            }));
+          },
+          onComplete: (data) => {
+            if (data.result.guardrails.status !== "ok") {
+              setError(data.result.guardrails.reason ?? "Input rejected by guardrails.");
+              setResult(null);
+            } else {
+              setResult(data.result);
+              void refreshHistory();
+            }
+          },
+        });
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Analysis failed.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [initPipeline, refreshHistory],
+  );
+
+  const handleAnalyzeText = useCallback(async () => {
     const trimmed = textContent.trim();
     if (!trimmed) {
       setError("Please paste some text to analyze.");
       return;
     }
-    setIsLoading(true);
-    try {
-      const payload = {
+    await runAnalyzeStream({
+      mode: "json",
+      body: {
         document: {
           content: trimmed,
           content_type: "markdown",
           source: "text",
         },
-      };
-      const resp = await fetch(`${API_BASE_URL}/analyze`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!resp.ok) {
-        const text = await resp.text();
-        throw new Error(`Backend error ${resp.status}: ${text}`);
-      }
-      const data: AnalysisResponse = await resp.json();
-      setResult(data.result);
-      void refreshHistory();
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to analyze text.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      },
+    });
+  }, [textContent, runAnalyzeStream]);
 
-  const handleAnalyzeFile = async () => {
-    setError(null);
-    setResult(null);
-    setCopiedSection(null);
+  const handleAnalyzeFile = useCallback(async () => {
     if (!file) {
       setError("Please choose a file to upload.");
       return;
     }
-    setIsLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("content_type", "markdown");
-
-      const resp = await fetch(`${API_BASE_URL}/analyze/file`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!resp.ok) {
-        const text = await resp.text();
-        throw new Error(`Backend error ${resp.status}: ${text}`);
-      }
-      const data: AnalysisResponse = await resp.json();
-      setResult(data.result);
-      void refreshHistory();
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to analyze file.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("content_type", "markdown");
+    await runAnalyzeStream({ mode: "form", formData });
+  }, [file, runAnalyzeStream]);
 
   const handleExportMarkdown = useCallback(() => {
     if (!result) return;
