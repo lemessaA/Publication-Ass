@@ -79,3 +79,6 @@ export interface AnalysisResponse {
   result: AnalysisResult;
 }
 
+/** Same shape as the API `HistoryItem` model. */
+export type HistoryItem = AnalysisResponse;
+
