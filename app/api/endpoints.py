@@ -253,6 +253,9 @@ async def analyze_file(
 async def analyze_file_stream(
     file: UploadFile = File(...),
     content_type: str = Form("markdown"),
+    section_hint: str | None = Form(None),
+    section_start_line: int | None = Form(None),
+    section_end_line: int | None = Form(None),
 ) -> StreamingResponse:
     """Stream SSE analysis for an uploaded file."""
     analysis_id = str(uuid.uuid4())
@@ -269,7 +272,12 @@ async def analyze_file_stream(
             source="file",
             filename=file.filename,
         )
-        request = AnalysisRequest(document=document)
+        request = _analysis_request_from_upload(
+            document,
+            section_hint=section_hint,
+            section_start_line=section_start_line,
+            section_end_line=section_end_line,
+        )
 
         logger.info(
             "analysis_file_stream_started id=%s filename=%s content_len=%s",
