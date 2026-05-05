@@ -394,6 +394,14 @@ const App: React.FC = () => {
           )}
         </section>
 
+        {result && result.analysis_warnings && result.analysis_warnings.length > 0 && (
+          <div className="alert alert-warn" role="status">
+            {result.analysis_warnings.map((w, idx) => (
+              <p key={idx}>{w}</p>
+            ))}
+          </div>
+        )}
+
         {result && (
           <section className="results-grid" id="analysis-results">
             {[
