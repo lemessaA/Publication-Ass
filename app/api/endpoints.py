@@ -238,6 +238,7 @@ async def analyze_file(
             section_hint=section_hint,
             section_start_line=section_start_line,
             section_end_line=section_end_line,
+            redact_before_llm=redact_before_llm,
         )
         return await analyze_publication(request)
     except HTTPException:
@@ -263,6 +264,7 @@ async def analyze_file_stream(
     section_hint: str | None = Form(None),
     section_start_line: int | None = Form(None),
     section_end_line: int | None = Form(None),
+    redact_before_llm: bool = Form(False),
 ) -> StreamingResponse:
     """Stream SSE analysis for an uploaded file."""
     analysis_id = str(uuid.uuid4())
