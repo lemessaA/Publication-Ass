@@ -182,8 +182,30 @@ def get_graph():
 
 def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
     """Execute the LangGraph pipeline to produce an AnalysisResult."""
+    settings = get_settings()
+    req_llm = request.model_copy(deep=True)
+    new_content, truncated = window_document_for_llm(
+        req_llm.document.content,
+        settings.max_llm_input_chars,
+    )
+    req_llm.document.content = new_content
+
+    warnings: list[str] = []
+    if truncated:
+        warnings.append(
+            "Document was shortened for the language model context limit "
+            f"({settings.max_llm_input_chars:,} characters). "
+            "Paste a shorter excerpt or set MAX_LLM_INPUT_CHARS higher if your Groq tier allows larger prompts."
+        )
+        logger.info(
+            "document_windowed_for_llm original_len=%s windowed_len=%s max_llm_input_chars=%s",
+            len(request.document.content),
+            len(new_content),
+            settings.max_llm_input_chars,
+        )
+
     graph = get_graph()
-    initial_state: OrchestratorState = {"request": request}
+    initial_state: OrchestratorState = {"request": req_llm}
 
     # In a more advanced setup, you might stream intermediate updates back.
     final_state = graph.invoke(initial_state)
@@ -196,6 +218,7 @@ def run_full_analysis(request: AnalysisRequest) -> AnalysisResult:
         summary=final_state.get("summary"),
         tags=final_state.get("tags"),
         guardrails=final_state["guardrails"],
+        analysis_warnings=warnings,
     )
     return filter_analysis_result(result)
 

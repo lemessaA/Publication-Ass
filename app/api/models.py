@@ -115,6 +115,10 @@ class AnalysisResult(BaseModel):
     guardrails: GuardrailResult = Field(
         default_factory=lambda: GuardrailResult(status=GuardrailStatus.ok)
     )
+    analysis_warnings: List[str] = Field(
+        default_factory=list,
+        description="Non-fatal notices for the client (e.g. document truncated for LLM).",
+    )
 
 
 class AnalysisRequest(BaseModel):
